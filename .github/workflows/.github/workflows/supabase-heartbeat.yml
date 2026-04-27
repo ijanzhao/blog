@@ -1,0 +1,16 @@
+name: Supabase Heartbeat - Keep Project Active
+
+on:
+  schedule:
+    - cron: '0 0 */4 * *'     # 每 4 天运行一次（推荐）
+  workflow_dispatch:          # 允许你手动测试
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database (keep alive)
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/compounds?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
