@@ -2,8 +2,8 @@ name: Supabase Heartbeat - Keep Project Active
 
 on:
   schedule:
-    - cron: '0 0 */4 * *'     # 每 4 天运行一次（推荐）
-  workflow_dispatch:          # 允许你手动测试
+    - cron: '0 0 */4 * *'     # 每 4 天运行一次
+  workflow_dispatch:          # 允许手动触发测试
 
 jobs:
   heartbeat:
