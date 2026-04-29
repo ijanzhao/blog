@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>药材详情</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: -apple-system;
+      padding: 30px;
+      background: #f4f6f8;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card" id="detail">
+  <h2>加载中...</h2>
+</div>
+
+<script>
+const supabaseUrl = 'https://jgcibolwmwotsymhgtjr.supabase.co';
+const supabaseKey = '你的 sb_publishable_key';
+
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+// 获取URL参数
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+
+async function loadDetail() {
+  const { data, error } = await client
+    .from('species')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  const el = document.getElementById('detail');
+
+  if (error) {
+    el.innerHTML = '<p>加载失败</p>';
+    return;
+  }
+
+  el.innerHTML = `
+    <h2>${data.name_zh}</h2>
+    <p><b>学名：</b>${data.name_latin}</p>
+    <p><b>ID：</b>${data.id}</p>
+  `;
+}
+
+loadDetail();
+</script>
+
+</body>
+</html>
