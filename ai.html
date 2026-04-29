@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>药材详情</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{font-family:-apple-system;background:#f4f6f8;padding:20px}
+.card{background:#fff;padding:20px;border-radius:12px;max-width:700px;margin:auto}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="detail"></div>
+
+<script>
+const supabaseUrl = 'https://jgcibolwmwotsymhgtjr.supabase.co';
+const supabaseKey = 'sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u';
+
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+const id = new URLSearchParams(location.search).get('id');
+
+async function load(){
+  const { data } = await client
+    .from('species')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  document.getElementById('detail').innerHTML = `
+    <h2>${data.name_zh}</h2>
+    <p><b>学名：</b>${data.name_latin}</p>
+    <p><b>分类：</b>${data.category}</p>
+    <p><b>成分：</b>${data.compounds}</p>
+    <p><b>药理：</b>${data.effects}</p>
+    <p><b>风险：</b>${data.risk_level}</p>
+    <p>${data.description}</p>
+  `;
+}
+
+load();
+</script>
+
+</body>
+</html>
