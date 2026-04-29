@@ -1,7 +1,12 @@
-#研发· 药材数据库
+<input id="name" placeholder="输入药材">
+<button onclick="analyze()">AI分析</button>
+<pre id="result"></pre>
 
-欢迎来到我的研究平台 🌿
+<script>
+async function analyze(){
+  const name=document.getElementById("name").value;
 
-- 铁筷子研究
-- 覆盆子成分分析
-- AI药材数据库（开发中）
+  document.getElementById("result").innerText=
+  "正在分析："+name+"（这里可接OpenAI API）";
+}
+</script>
