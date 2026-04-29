@@ -1,2 +1,2 @@
-title: 我的博客
-theme: minima   # 你可以换成自己喜欢的 Jekyll 主题
+const supabaseUrl = 'https://jgcibolwmwotsymhgtjr.supabase.co';
+const supabaseKey = 'sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u';
