@@ -1,74 +1,28 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>药材数据库</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body { font-family: -apple-system, sans-serif; background: #f4f6f8; margin: 0; }
-header { background: #0f172a; color: #fff; padding: 20px; text-align: center; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
-.card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-.card h3 { margin: 0 0 8px; font-size: 18px; color: #1a1a1a; }
-.card p  { margin: 0; font-style: italic; color: #555; font-size: 14px; }
-.msg { padding: 40px; text-align: center; color: #666; font-size: 15px; }
-.err { color: #c0392b; }
-</style>
-</head>
-<body>
-
-<header>
-  <h1>🌿 药材数据库</h1>
-</header>
-
-<div id="root"><p class="msg">正在加载…</p></div>
 
 <script>
-const SUPABASE_URL = 'https://jgcibolwmwotsymhgtjr.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI';
+  // 2. 直接填入你的 URL 和 Anon Key (从 Supabase Settings -> API 获取)
+  const SUPABASE_URL = 'https://jgcibolwm...supabase.co'; 
+  const SUPABASE_ANON_KEY = 'eyJhbG...'; 
 
-const { createClient } = supabase;
-const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function loadData() {
-  const root = document.getElementById('root');
+  async function checkConnection() {
+    try {
+      // 注意：确保 'species' 表确实存在，且开启了 RLS 并在 RLS 中允许了 Select
+      const { data, error } = await supabase
+        .from('species')
+        .select('*')
+        .limit(1);
 
-  const { data, error } = await client.from('species').select('*');
-
-  if (error) {
-    root.innerHTML = `<p class="msg err">连接失败：${error.message}</p>`;
-    return;
+      if (error) throw error;
+      console.log("连接成功:", data);
+      // 这里添加逻辑：成功后隐藏“连接失败”提示，显示数据
+    } catch (err) {
+      console.error("连接失败详情:", err.message);
+      document.getElementById('connection-msg').innerText = "数据库连接失败: " + err.message;
+    }
   }
 
-  if (!data || data.length === 0) {
-    root.innerHTML = '<p class="msg">暂无数据</p>';
-    return;
-  }
-
-  const grid = document.createElement('div');
-  grid.className = 'grid';
-
-  data.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const h3 = document.createElement('h3');
-    h3.textContent = item.name_zh || '—';
-
-    const p = document.createElement('p');
-    p.textContent = item.name_latin || '—';
-
-    card.appendChild(h3);
-    card.appendChild(p);
-    grid.appendChild(card);
-  });
-
-  root.innerHTML = '';
-  root.appendChild(grid);
-}
-
-loadData();
+  checkConnection();
 </script>
-</body>
-</html>
