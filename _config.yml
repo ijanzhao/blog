@@ -1,2 +1,4 @@
-const supabaseUrl = 'https://jgcibolwmwotsymhgtjr.supabase.co';
-const supabaseKey = 'sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u';
+const client = window.supabase.createClient(
+  'https://jgcibolwmwotsymhgtjr.supabase.co',
+  'sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u'
+);
