@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>化合物详情</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui; margin: 0; background: #f0f4f8; }
+        .header { background: #14532d; color: white; padding: 20px 32px;
+                  display: flex; align-items: center; gap: 16px; }
+        .back { color: white; text-decoration: none; font-size: 22px; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .container { max-width: 720px; margin: 32px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 12px; padding: 28px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card h2 { margin: 0 0 20px; font-size: 24px; color: #14532d;
+                   border-bottom: 2px solid #dcfce7; padding-bottom: 12px; }
+        .row { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+        .label { min-width: 80px; font-size: 14px; color: #888; padding-top: 2px; }
+        .value { font-size: 15px; color: #1a1a1a; line-height: 1.6; flex: 1; }
+        #status { text-align: center; padding: 60px; color: #666; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px;
+                    background: #14532d; color: white; border-radius: 8px;
+                    text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a class="back" href="index.html">←</a>
+        <h1>化合物详情</h1>
+    </div>
+    <div class="container">
+        <div id="status">正在加载...</div>
+        <div id="content"></div>
+        <a class="back-btn" href="index.html">← 返回列表</a>
+    </div>
+
+    <script>
+        const { createClient } = window.supabase;
+        const db = createClient(
+            'https://jgcibolwmwotsymhgtjr.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI'
+        );
+
+        async function main() {
+            const status = document.getElementById('status');
+            const content = document.getElementById('content');
+
+            const params = new URLSearchParams(location.search);
+            const idx = params.get('i');
+
+            // 优先从sessionStorage读取（快）
+            const cached = sessionStorage.getItem('compounds');
+            if (cached && idx !== null) {
+                const data = JSON.parse(cached);
+                const item = data[idx];
+                if (item) { render(item); return; }
+            }
+
+            // 没有缓存则重新查询
+            try {
+                const { data, error } = await db
+                    .from('v_compound_full')
+                    .select('*');
+                if (error) throw error;
+                sessionStorage.setItem('compounds', JSON.stringify(data));
+                const item = data[idx];
+                if (!item) throw new Error('记录不存在');
+                render(item);
+            } catch (e) {
+                status.innerHTML = `<p style="color:red">❌ ${e.message}</p>`;
+            }
+
+            function render(item) {
+                status.style.display = 'none';
+                const fields = Object.entries(item).filter(([k]) => k !== 'id');
+                const labels = {
+                    compound: '化合物',
+                    target: '靶点',
+                    pathway: '通路',
+                    activity: '活性',
+                    species: '来源物种',
+                    reference: '参考文献'
+                };
+                content.innerHTML = `
+                    <div class="card">
+                        <h2>${item.compound || '未命名化合物'}</h2>
+                        ${fields.map(([k, v]) => `
+                            <div class="row">
+                                <span class="label">${labels[k] || k}</span>
+                                <span class="value">${v || '—'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+        main();
+    </script>
+</body>
+</html>
