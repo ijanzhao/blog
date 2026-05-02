@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 药材数据库</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {font-family: system-ui; margin:0; background:#f8fafc; padding:20px;}
+        h1 {color:#166534; text-align:center;}
+        .loading, .error {text-align:center; padding:60px 20px; color:#666;}
+        .card {background:white; padding:15px; margin:10px 0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+    </style>
+</head>
+<body>
+    <h1>🌿 药材数据库</h1>
+    <div id="root" class="loading">正在连接数据库...</div>
+
+    <script>
+        const supabase = Supabase.createClient(
+            'https://jgcibolwmwotsymhgtjr.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI'
+        );
+
+        async function init() {
+            const root = document.getElementById('root');
+            try {
+                const { data, error } = await supabase.from('species').select('*');
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    root.innerHTML = '<div class="error">✅ 连接成功，但没有数据</div>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(item => {
+                    html += `<div class="card"><strong>${item.name_zh || ''}</strong><br>${item.name_latin || ''}</div>`;
+                });
+                root.innerHTML = html;
+            } catch (e) {
+                root.innerHTML = `<div class="error">❌ 连接失败<br><small>${e.message}</small></div>`;
+                console.error(e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
