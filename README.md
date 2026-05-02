@@ -1,35 +1,30 @@
 # 🌿 WildPhytoDB
 
-Cold-region Wild Plant Secondary Metabolite Database  
-Multi-omics Integration · Bioinformatics Mining · Product Discovery
+Cold-region Wild Plant Secondary Metabolite Database
 
-## 🔬 Overview
+## 🔬 项目简介
+一个用于研究冷域野生植物次生代谢物的开源数据库项目。
 
-WildPhytoDB is an open-source scientific database focusing on 
-secondary metabolites from wild plants in extreme environments.
+## 🚀 功能
+- 植物数据库（species）
+- 代谢物（metabolites）
+- 功效（effects）
+- 关系建模
 
-This project integrates:
+## 🧬 技术
+- Supabase (PostgreSQL)
+- SQL
+- GitHub Pages
 
-- 🌱 Plant taxonomy
-- 🧪 Metabolomics data
-- 🧬 Multi-omics datasets
-- 🔍 Bioinformatics analysis
+## 📦 使用方法
 
-## 🚀 Features
+1. 在 Supabase 执行：
+   - schema.sql
+   - seed.sql
 
-- Structured relational database (Supabase/PostgreSQL)
-- Open API for querying plant-metabolite relationships
-- AI-ready dataset for drug discovery
-- GitHub Pages web interface
+2. 打开 web/index.html
 
-## 📊 Data Sources
-
-- Literature mining
-- Public metabolomics databases
-- Experimental datasets
-
-## 🧠 Applications
-
-- Drug discovery
-- Functional food development
-- Traditional medicine modernization
+## 🌍 应用方向
+- 药物研发
+- 功能食品
+- 生物信息学
