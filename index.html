@@ -1,87 +1,51 @@
+---
+---
 <!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>药材数据库</title>
-
 <style>
-body { font-family: -apple-system, sans-serif; background: #f4f6f8; margin: 0; }
-header { background: #0f172a; color: #fff; padding: 20px; text-align: center; }
-header h1 { font-size: 22px; margin: 0; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 20px; }
-.card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); cursor:pointer; }
-.card:hover { transform: translateY(-2px); }
-.card h3 { margin: 0 0 6px; font-size: 18px; }
-.card .latin { font-style: italic; color: #4a7c5a; font-size: 14px; }
-.msg { padding: 60px; text-align: center; color: #999; }
-.err { color: #c0392b; }
+body{font-family:-apple-system,sans-serif;background:#f4f6f8;margin:0}
+header{background:#0f172a;color:#fff;padding:20px;text-align:center}
+header h1{font-size:22px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;padding:20px}
+.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;font-style:italic;color:#555;font-size:14px}
+.msg{padding:60px;text-align:center;color:#999}
+.err{color:#c0392b}
 </style>
-
 </head>
 <body>
-
-<header>
-  <h1>🌿 药材数据库</h1>
-</header>
-
+<header><h1>🌿 药材数据库</h1></header>
 <div id="root"><p class="msg">正在加载…</p></div>
-
 <script>
-
-const API = 'https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/species?select=*';
-const KEY = '你的KEY（保持你现在这个）';
-
-async function loadData() {
-  const root = document.getElementById('root');
-
-  try {
-    const res = await fetch(API, {
-      headers: {
-        'apikey': KEY,
-        'Authorization': 'Bearer ' + KEY
-      }
-    });
-
-    const data = await res.json();
-
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-
-    data.forEach(item => {
-
-      const card = document.createElement('div');
-      card.className = 'card';
-
-      // ✅ 点击跳转（重点就在这里）
-      card.onclick = () => {
-        window.location.href = `detail.html?id=${item.id}`;
-      };
-
-      const h3 = document.createElement('h3');
-      h3.textContent = item.name_zh || '—';
-
-      const latin = document.createElement('p');
-      latin.className = 'latin';
-      latin.textContent = item.name_latin || '—';
-
-      card.appendChild(h3);
-      card.appendChild(latin);
-
-      grid.appendChild(card);
-    });
-
-    root.innerHTML = '';
-    root.appendChild(grid);
-
-  } catch (err) {
-    root.innerHTML = '<p class="msg err">连接失败</p>';
+fetch('https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/species?select=*',{
+  headers:{
+    'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI',
+    'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI'
   }
-}
-
-loadData();
-
+})
+.then(r=>r.json())
+.then(data=>{
+  const root=document.getElementById('root');
+  if(!data.length){root.innerHTML='<p class="msg">暂无数据</p>';return;}
+  const g=document.createElement('div');
+  g.className='grid';
+  data.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML='<h3>'+item.name_zh+'</h3><p>'+item.name_latin+'</p>';
+    g.appendChild(c);
+  });
+  root.innerHTML='';
+  root.appendChild(g);
+})
+.catch(e=>{
+  document.getElementById('root').innerHTML='<p class="msg err">连接失败：'+e.message+'</p>';
+});
 </script>
-
 </body>
 </html>
