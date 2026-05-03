@@ -83,3 +83,20 @@ async function search() {
 
 </body>
 </html>
+<button onclick="chart()">代谢物统计</button>
+
+<script>
+async function chart(){
+  const { data } = await supabase.from("metabolites").select("type");
+
+  let count = {};
+  data.forEach(d=>{
+    if(d.type){
+      count[d.type] = (count[d.type]||0)+1;
+    }
+  });
+
+  document.getElementById("result").innerHTML =
+    "<pre>"+JSON.stringify(count,null,2)+"</pre>";
+}
+</script>
