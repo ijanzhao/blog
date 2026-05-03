@@ -11,18 +11,26 @@ Cold-region Wild Plant Secondary Metabolite Database
 - 功效（effects）
 - 关系建模
 
-## 🧬 技术
-- Supabase (PostgreSQL)
-- SQL
-- GitHub Pages
+# 🌿 WildPhytoDB
 
-## 📦 使用方法
+## Overview
+Cold-region plant metabolite research platform.
 
-1. 在 Supabase 执行：
-   - schema.sql
-   - seed.sql
+## Features
+- Database (Supabase)
+- Web interface
+- Statistical analysis
+- Automated report generation
 
-2. 打开 web/index.html
+## Usage
+1. Run database/schema.sql
+2. Run database/seed.sql
+3. Open web/index.html
+4. Run analysis/report.py
+
+## Output
+- Figures
+- Report.txt
 
 ## 🌍 应用方向
 - 药物研发
