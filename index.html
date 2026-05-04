@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPhytoDB - 药材科研平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #f9fafb; color: #111827; }
+        .header { background: #064e3b; color: white; padding: 2rem; text-align: center; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .btn-group { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        button { background: #10b981; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 0.4rem; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #059669; }
+        input { flex: 1; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.4rem; }
+        #result { background: #1f2937; color: #10b981; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; min-height: 100px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌿 WildPhytoDB 科研平台</h1>
+        <p>中药材化合物与代谢物数据库</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div class="btn-group">
+                <input id="searchInp" placeholder="搜索物种名称...">
+                <button onclick="doSearch()">查询物种</button>
+                <button onclick="doStats()" style="background:#3b82f6">分类统计</button>
+            </div>
+            <div id="result">等待操作...</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
