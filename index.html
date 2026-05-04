@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>药材数据库科研平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #14532d; font-size: 20px; text-align: center; }
+        button { width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; background: #1e293b; color: #4ade80; border-radius: 5px; font-family: monospace; font-size: 12px; white-space: pre-wrap; min-height: 100px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🌿 药材数据库</h1>
+        <button onclick="fetchData()">查询化合物数据</button>
+        <div id="result">等待点击查询...</div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
