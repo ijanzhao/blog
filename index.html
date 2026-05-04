@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPhytoDB - 冷域野生植物数据库</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #14532d; border-bottom: 2px solid #dcfce7; padding-bottom: 10px; }
+        .desc { color: #666; font-size: 14px; margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { padding: 10px 20px; background: #14532d; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #166534; }
+        #result { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 8px; overflow-x: auto; min-height: 100px; font-family: 'Courier New', Courier, monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 WildPhytoDB</h1>
+        <p class="desc">冷域野生植物次生代谢物开源数据库项目</p>
+        
+        <div class="btn-group">
+            <button onclick="fetchSpecies()">🌱 浏览植物 (Species)</button>
+            <button onclick="fetchMetabolites()">🧪 代谢物统计 (Metabolites)</button>
+        </div>
+
+        <div id="result">// 数据库响应结果将在此处显示...</div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
