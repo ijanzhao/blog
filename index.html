@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPhytoDB - 药材科研平台</title>
+    <!-- 引入 Supabase 官方 SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f0f4f8; color: #333; }
+        .header { background: #14532d; color: white; padding: 1.5rem; text-align: center; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .controls { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        input { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        button { padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #15803d; }
+        #result { 
+            background: #1e293b; color: #4ade80; padding: 1.5rem; border-radius: 8px; 
+            white-space: pre-wrap; font-family: 'Courier New', Courier, monospace;
+            min-height: 150px; border: 1px solid #334155; font-size: 13px;
+        }
+        .error-msg { color: #f87171; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🌿 药材数据库科研平台</h1>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="controls">
+            <input id="searchKey" placeholder="输入化合物或药材名称...">
+            <button onclick="doSearch()">查询数据</button>
+            <button onclick="doStats()" style="background:#2563eb">统计类型</button>
+        </div>
+        <div id="result">等待操作...</div>
+    </div>
+</div>
+
+<!-- 引入业务逻辑 -->
+<script src="app.js"></script>
+
+</body>
+</html>
