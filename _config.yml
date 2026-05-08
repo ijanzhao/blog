@@ -1,0 +1,27 @@
+# ── 站點基本資訊 ──────────────────────────────────────
+title:       "IJAN Research"
+description: "植物天然產物研究平台 · Botanical Natural Products Research"
+author:      "ijanzhao"
+
+# ── 域名設置（必須與 blog.ijan.app 匹配） ────────────────
+url:     "https://blog.ijan.app"   # 完整域名
+baseurl: ""                         # 必須為空，不能填倉庫名
+
+# ── 構建設置 ──────────────────────────────────────────
+permalink: /:year/:month/:day/:title/
+timezone:  Asia/Shanghai
+encoding:  "utf-8"
+
+# ── 主題與插件 ────────────────────────────────────────
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# ── 排除文件（避免 Jekyll 誤處理你的 JS 工具） ──────────
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/
