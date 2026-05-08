@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ijan.app | 藥理資料庫</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding-top: 50px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        h1 { color: #14532d; font-size: 22px; margin-bottom: 20px; }
+        button { background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
+        #result { margin-top: 20px; background: #1e293b; color: #6ee7b7; padding: 15px; border-radius: 8px; font-size: 14px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🌿 藥理科研平台</h1>
+        <button onclick="fetchData()">查詢化合物數據</button>
+        <div id="result">等待點擊查詢...</div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
