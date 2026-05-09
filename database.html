@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WildPhytoDB — 天然产物数据库 · ijan.app</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+```
+:root {
+  --bg:      #080c10;
+  --bg2:     #0d1318;
+  --bg3:     #111921;
+  --border:  rgba(255,255,255,0.07);
+  --moss:    #3d6b4f;
+  --sage:    #6aab7e;
+  --text:    #e8e4dc;
+  --dim:     #7a8a82;
+  --faint:   #3a4a42;
+  --amber:   #c9a84c;
+  --red:     #c04545;
+  --mono:    'Courier New', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* NAV */
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,16,0.95);
+  position: sticky; top: 0; z-index: 50;
+}
+.nav-logo {
+  font-family: Georgia, serif;
+  font-size: 18px; font-style: italic;
+  color: var(--sage); letter-spacing: 0.02em;
+}
+.nav-back {
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim); text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--sage); }
+
+/* HEADER */
+.page-header {
+  padding: 48px 32px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.page-tag {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--sage);
+  margin-bottom: 12px; display: block;
+}
+.page-title {
+  font-family: Georgia, serif;
+  font-size: 32px; font-style: italic;
+  color: var(--text); margin-bottom: 6px;
+}
+.page-sub {
+  font-size: 13px; color: var(--dim);
+  letter-spacing: 0.08em;
+}
+
+/* SEARCH */
+.search-wrap {
+  padding: 24px 32px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 12px; align-items: center;
+}
+.search-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--sage); }
+.search-input::placeholder { color: var(--faint); }
+.search-btn {
+  background: var(--sage);
+  color: var(--bg);
+  border: none; padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer;
+  transition: background 0.2s;
+}
+.search-btn:hover { background: #82c496; }
+
+/* STATS BAR */
+.stats-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.stat-item {
+  flex: 1; padding: 16px 32px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: Georgia, serif;
+  font-size: 28px; color: var(--sage);
+  display: block; line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 9px; color: var(--faint);
+  letter-spacing: 0.15em; text-transform: uppercase;
+  margin-top: 4px; display: block;
+}
+
+/* MAIN */
+main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+/* STATUS */
+.status {
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.status.loading { border-color: var(--faint); color: var(--dim); }
+.status.success { border-color: var(--moss); color: var(--sage); }
+.status.error   { border-color: var(--red);  color: #e07070; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.loading .status-dot { background: var(--dim); animation: pulse 1.2s infinite; }
+.success .status-dot { background: var(--sage); }
+.error   .status-dot { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* SECTION LABEL */
+.sec-label {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--sage);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sec-label::after {
+  content: ''; flex: 1; max-width: 60px;
+  height: 1px; background: var(--moss);
+}
+
+/* TABLE */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px;
+}
+thead tr {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+th {
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--sage);
+  text-align: left; white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+tbody tr:hover { background: var(--bg3); }
+td {
+  padding: 12px 16px;
+  color: var(--text);
+  vertical-align: middle;
+}
+td.mono { font-family: var(--mono); color: var(--sage); font-size: 11px; }
+td.dim  { color: var(--dim); font-size: 11px; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.badge-active    { color: var(--sage);  border-color: var(--moss); }
+.badge-screening { color: var(--amber); border-color: #7a6030; }
+.badge-pending   { color: var(--dim);   border-color: var(--faint); }
+
+/* EMPTY */
+.empty {
+  text-align: center; padding: 60px 20px;
+  color: var(--faint);
+  font-family: var(--mono); font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 10px; color: var(--faint);
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 600px) {
+  nav, .search-wrap, main, footer { padding-left: 16px; padding-right: 16px; }
+  .page-header { padding: 32px 16px 24px; }
+  .stats-bar { flex-wrap: wrap; }
+  .stat-item { min-width: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+}
+```
+
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">IJAN · WildPhytoDB</span>
+  <a href="/" class="nav-back">← 返回博客</a>
+</nav>
+
+<div class="page-header">
+  <span class="page-tag">// Database Preview · 数据库预览</span>
+  <h1 class="page-title">Wild Phytochemical Database</h1>
+  <p class="page-sub">冷域野生植物次生代谢物数据库 · Supabase · jgcibolwmwotsymhgtjr</p>
+</div>
+
+<div class="search-wrap">
+  <input class="search-input" id="search" type="text"
+    placeholder="搜索化合物名称、物种、分子量...">
+  <button class="search-btn" onclick="doSearch()">Search</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-num" id="count-compounds">—</span>
+    <span class="stat-label">Compounds · 化合物</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" id="count-species">—</span>
+    <span class="stat-label">Species · 物种</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" id="count-active">—</span>
+    <span class="stat-label">Active Research · 活性研究</span>
+  </div>
+</div>
+
+<main>
+  <div class="status loading" id="status">
+    <span class="status-dot"></span>
+    <span id="status-text">正在连接数据库...</span>
+  </div>
+
+  <!-- COMPOUNDS TABLE -->
+
+  <div class="sec-label">Compounds · 化合物列表</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name · 化合物名</th>
+          <th>Chinese Name · 中文名</th>
+          <th>MW · 分子量</th>
+          <th>Type · 类型</th>
+          <th>Research Phase · 研究阶段</th>
+        </tr>
+      </thead>
+      <tbody id="compounds-body">
+        <tr><td colspan="6" class="empty">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SPECIES TABLE -->
+
+  <div class="sec-label">Species · 物种列表</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Latin Name · 拉丁名</th>
+          <th>Chinese Name · 中文名</th>
+          <th>Family · 科属</th>
+          <th>Region · 产地</th>
+        </tr>
+      </thead>
+      <tbody id="species-body">
+        <tr><td colspan="5" class="empty">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<footer>
+  <span>ijan.app · admin@ijan.app</span>
+  <span>Powered by Supabase · 植物天然产物研究平台</span>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://jgcibolwmwotsymhgtjr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  document.getElementById('status-text').textContent = msg;
+}
+
+function badgeHtml(phase) {
+  if (!phase) return '<span class="dim">—</span>';
+  const p = phase.toLowerCase();
+  if (p.includes('active') || p.includes('活性'))
+    return `<span class="badge badge-active">${phase}</span>`;
+  if (p.includes('screen') || p.includes('筛选'))
+    return `<span class="badge badge-screening">${phase}</span>`;
+  return `<span class="badge badge-pending">${phase}</span>`;
+}
+
+async function loadCompounds(query = '') {
+  let req = db.from('compounds')
+    .select('id, name, chinese_name, molecular_weight, type, research_phase')
+    .order('id', { ascending: true })
+    .limit(100);
+
+  if (query) {
+    req = req.or(`name.ilike.%${query}%,chinese_name.ilike.%${query}%`);
+  }
+
+  const { data, error } = await req;
+  const tbody = document.getElementById('compounds-body');
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty" style="color:#e07070">
+      ❌ ${error.message}</td></tr>`;
+    return 0;
+  }
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">暂无数据 · No data found</td></tr>`;
+    return 0;
+  }
+
+  tbody.innerHTML = data.map((r, i) => `
+    <tr>
+      <td class="dim mono">${String(i+1).padStart(2,'0')}</td>
+      <td><strong>${r.name || '—'}</strong></td>
+      <td class="dim">${r.chinese_name || '—'}</td>
+      <td class="mono">${r.molecular_weight ? r.molecular_weight + ' g/mol' : '—'}</td>
+      <td class="dim">${r.type || '—'}</td>
+      <td>${badgeHtml(r.research_phase)}</td>
+    </tr>
+  `).join('');
+
+  return data.length;
+}
+
+async function loadSpecies() {
+  const { data, error } = await db.from('species')
+    .select('id, latin_name, chinese_name, family, region')
+    .order('id', { ascending: true })
+    .limit(50);
+
+  const tbody = document.getElementById('species-body');
+
+  if (error || !data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">
+      ${error ? '❌ ' + error.message : '暂无物种数据'}</td></tr>`;
+    return 0;
+  }
+
+  tbody.innerHTML = data.map((r, i) => `
+    <tr>
+      <td class="dim mono">${String(i+1).padStart(2,'0')}</td>
+      <td class="mono"><em>${r.latin_name || '—'}</em></td>
+      <td class="dim">${r.chinese_name || '—'}</td>
+      <td class="dim">${r.family || '—'}</td>
+      <td class="dim">${r.region || '—'}</td>
+    </tr>
+  `).join('');
+
+  return data.length;
+}
+
+async function loadStats() {
+  const [c1, c2] = await Promise.all([
+    db.from('compounds').select('*', { count: 'exact', head: true }),
+    db.from('species').select('*', { count: 'exact', head: true }),
+  ]);
+  document.getElementById('count-compounds').textContent = c1.count ?? '—';
+  document.getElementById('count-species').textContent    = c2.count ?? '—';
+
+  const { count: activeCount } = await db.from('compounds')
+    .select('*', { count: 'exact', head: true })
+    .ilike('research_phase', '%active%');
+  document.getElementById('count-active').textContent = activeCount ?? '—';
+}
+
+async function doSearch() {
+  const q = document.getElementById('search').value.trim();
+  setStatus('loading', '搜索中...');
+  const n = await loadCompounds(q);
+  setStatus('success', `找到 ${n} 条记录`);
+}
+
+async function init() {
+  setStatus('loading', '正在连接 Supabase 数据库...');
+  try {
+    await Promise.all([loadStats(), loadCompounds(), loadSpecies()]);
+    setStatus('success', '✓ 数据库连接成功 · Connected to jgcibolwmwotsymhgtjr.supabase.co');
+  } catch(e) {
+    setStatus('error', '❌ 连接失败：' + e.message);
+  }
+}
+
+document.getElementById('search').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+init();
+</script>
+
+</body>
+</html>
