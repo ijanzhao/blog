@@ -1,0 +1,21 @@
+# ── Site Identity ──────────────────────────────────────
+title:       "IJAN Research"
+description: "植物天然产物研究平台 · Botanical Natural Products Research"
+author:      "ijanzhao"
+
+# ── URLs（最关键，必须正确）────────────────────────────
+url:     "https://blog.ijan.app"   # 完整域名，含 https://
+baseurl: ""                         # 必须为空字符串，不能是 /repo-name
+
+# ── Build ──────────────────────────────────────────────
+permalink: /:year/:month/:day/:title/
+timezone:  Asia/Shanghai
+
+# ── Theme ──────────────────────────────────────────────
+theme: minima   # 或你用的主题名
+
+# ── Plugins ────────────────────────────────────────────
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
