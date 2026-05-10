@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WildPhytoDB — 天然产物数据库 · ijan.app</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:    #080c10; --bg2: #0d1318; --bg3: #111921;
+      --border:rgba(255,255,255,0.07);
+      --moss:  #3d6b4f; --sage: #6aab7e;
+      --text:  #e8e4dc; --dim:  #7a8a82; --faint: #3a4a42;
+      --amber: #c9a84c; --red:  #c04545;
+      --mono:  'Courier New', monospace;
+    }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,sans-serif; font-size:14px; line-height:1.6; min-height:100vh; }
+
+```
+/* ── GATE ── */
+#gate { position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; }
+.gate-box { width:100%; max-width:400px; border:1px solid var(--border); background:var(--bg2); padding:48px 40px; }
+.gate-logo { font-family:Georgia,serif; font-size:26px; font-style:italic; color:var(--sage); margin-bottom:6px; }
+.gate-sub { font-family:var(--mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--faint); margin-bottom:40px; }
+.gate-label { font-family:var(--mono); font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--dim); margin-bottom:8px; display:block; }
+.gate-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:12px 16px; font-family:var(--mono); font-size:14px; letter-spacing:0.1em; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
+.gate-input:focus { border-color:var(--sage); }
+.gate-input::placeholder { color:var(--faint); }
+.gate-btn { width:100%; background:var(--sage); color:var(--bg); border:none; padding:13px; font-family:var(--mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+.gate-btn:hover { background:#82c496; }
+.gate-error { margin-top:14px; font-family:var(--mono); font-size:11px; color:#e07070; letter-spacing:0.08em; display:none; text-align:center; }
+.gate-hint { margin-top:32px; padding-top:20px; border-top:1px solid var(--border); font-family:var(--mono); font-size:9px; color:var(--faint); letter-spacing:0.12em; text-align:center; line-height:1.9; }
+
+/* ── APP ── */
+#app { display:none; }
+nav { display:flex; align-items:center; justify-content:space-between; padding:0 32px; height:56px; border-bottom:1px solid var(--border); background:rgba(8,12,16,0.95); position:sticky; top:0; z-index:50; }
+.nav-logo { font-family:Georgia,serif; font-size:18px; font-style:italic; color:var(--sage); letter-spacing:0.02em; }
+.nav-links { display:flex; align-items:center; gap:20px; }
+.nav-back { font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim); text-decoration:none; transition:color 0.2s; }
+.nav-back:hover { color:var(--sage); }
+.nav-logout { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--faint); background:none; border:1px solid var(--faint); padding:4px 12px; cursor:pointer; transition:all 0.2s; }
+.nav-logout:hover { color:var(--red); border-color:var(--red); }
+.page-header { padding:48px 32px 32px; border-bottom:1px solid var(--border); background:var(--bg2); }
+.page-tag { font-family:var(--mono); font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--sage); margin-bottom:12px; display:block; }
+.page-title { font-family:Georgia,serif; font-size:32px; font-style:italic; color:var(--text); margin-bottom:6px; }
+.page-sub { font-size:13px; color:var(--dim); letter-spacing:0.08em; }
+.search-wrap { padding:24px 32px; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; }
+.search-input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px 16px; font-family:var(--mono); font-size:12px; outline:none; transition:border-color 0.2s; }
+.search-input:focus { border-color:var(--sage); }
+.search-input::placeholder { color:var(--faint); }
+.search-btn { background:var(--sage); color:var(--bg); border:none; padding:10px 20px; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+.search-btn:hover { background:#82c496; }
+.stats-bar { display:flex; gap:0; border-bottom:1px solid var(--border); }
+.stat-item { flex:1; padding:16px 32px; border-right:1px solid var(--border); text-align:center; }
+.stat-item:last-child { border-right:none; }
+.stat-num { font-family:Georgia,serif; font-size:28px; color:var(--sage); display:block; line-height:1; }
+.stat-label { font-family:var(--mono); font-size:9px; color:var(--faint); letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; display:block; }
+main { padding:32px; max-width:1200px; margin:0 auto; }
+.status { padding:16px 20px; border:1px solid var(--border); margin-bottom:24px; font-family:var(--mono); font-size:12px; display:flex; align-items:center; gap:10px; }
+.status.loading { border-color:var(--faint); color:var(--dim); }
+.status.success { border-color:var(--moss); color:var(--sage); }
+.status.error   { border-color:var(--red);  color:#e07070; }
+.status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.loading .status-dot { background:var(--dim); animation:pulse 1.2s infinite; }
+.success .status-dot { background:var(--sage); }
+.error   .status-dot { background:var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sec-label { font-family:var(--mono); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--sage); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.sec-label::after { content:''; flex:1; max-width:60px; height:1px; background:var(--moss); }
+.table-wrap { overflow-x:auto; border:1px solid var(--border); margin-bottom:40px; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead tr { background:var(--bg3); border-bottom:1px solid var(--border); }
+th { padding:12px 16px; font-family:var(--mono); font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--sage); text-align:left; white-space:nowrap; }
+tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+tbody tr:hover { background:var(--bg3); }
+td { padding:12px 16px; color:var(--text); vertical-align:middle; }
+td.mono { font-family:var(--mono); color:var(--sage); font-size:11px; }
+td.dim  { color:var(--dim); font-size:11px; }
+.empty { text-align:center; padding:60px 20px; color:var(--faint); font-family:var(--mono); font-size:12px; letter-spacing:0.1em; }
+footer { border-top:1px solid var(--border); padding:20px 32px; display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:10px; color:var(--faint); letter-spacing:0.1em; }
+@media (max-width:600px) {
+  nav,.search-wrap,main,footer { padding-left:16px; padding-right:16px; }
+  .page-header { padding:32px 16px 24px; }
+  .stats-bar { flex-wrap:wrap; }
+  .stat-item { min-width:50%; border-right:none; border-bottom:1px solid var(--border); }
+}
+```
+
+  </style>
+</head>
+<body>
+
+<!-- ── GATE ── -->
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">IJAN · WildPhytoDB</div>
+    <div class="gate-sub">植物天然产物研究平台 · Restricted Access</div>
+    <span class="gate-label">邀请码 Invite Code</span>
+    <input class="gate-input" id="gate-input" type="text"
+      placeholder="IJAN-XXXXXX" autocomplete="off" spellcheck="false">
+    <button class="gate-btn" onclick="checkCode()">进入数据库 →</button>
+    <div class="gate-error" id="gate-error">❌ 邀请码无效，请联系 admin@ijan.app</div>
+    <div class="gate-hint">
+      本数据库为受邀访问 · Invite Only<br>
+      当前邀请码有效期至 2026 Q3<br>
+      如需申请访问权限请联系<br>
+      admin@ijan.app
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+
+<div id="app">
+<nav>
+  <span class="nav-logo">IJAN · WildPhytoDB</span>
+  <div class="nav-links">
+    <a href="/" class="nav-back">← 返回博客</a>
+    <button class="nav-logout" onclick="logout()">退出 ×</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <span class="page-tag">// Database Preview · 数据库预览</span>
+  <h1 class="page-title">Wild Phytochemical Database</h1>
+  <p class="page-sub">冷域野生植物次生代谢物数据库 · Supabase · jgcibolwmwotsymhgtjr</p>
+</div>
+
+<div class="search-wrap">
+  <input class="search-input" id="search" type="text" placeholder="搜索化合物名称、类型...">
+  <button class="search-btn" onclick="doSearch()">Search</button>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-num" id="count-compounds">—</span>
+    <span class="stat-label">Compounds · 化合物</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" id="count-species">—</span>
+    <span class="stat-label">Species · 物种</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" id="count-active">—</span>
+    <span class="stat-label">Active Research · 活性研究</span>
+  </div>
+</div>
+
+<main>
+  <div class="status loading" id="status">
+    <span class="status-dot"></span>
+    <span id="status-text">正在连接数据库...</span>
+  </div>
+
+  <div class="sec-label">Compounds · 化合物列表</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Name · 化合物名</th><th>Type · 类型</th><th>Description · 描述</th></tr></thead>
+      <tbody id="compounds-body"><tr><td colspan="4" class="empty">加载中...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="sec-label">Species · 物种列表</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Latin Name · 拉丁名</th><th>Chinese Name · 中文名</th><th>Description · 描述</th></tr></thead>
+      <tbody id="species-body"><tr><td colspan="4" class="empty">加载中...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<footer>
+  <span>ijan.app · admin@ijan.app</span>
+  <span>Powered by Supabase · 植物天然产物研究平台</span>
+</footer>
+</div><!-- end #app -->
+
+<script>
+const INVITE_CODE = 'IJAN-2026Q2';
+const SESSION_KEY = 'ijan_access';
+
+const SUPABASE_URL = 'https://jgcibolwmwotsymhgtjr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI';
+const HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json'
+};
+
+/* ── GATE LOGIC ── */
+function checkCode() {
+  const val = document.getElementById('gate-input').value.trim();
+  if (val === INVITE_CODE) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('gate-error').style.display = 'block';
+    document.getElementById('gate-input').style.borderColor = 'var(--red)';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('gate-input').value = '';
+  document.getElementById('gate-error').style.display = 'none';
+  document.getElementById('gate-input').style.borderColor = '';
+}
+
+document.getElementById('gate-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkCode();
+});
+
+// Auto-unlock if already verified this session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+/* ── DATABASE ── */
+async function dbQuery(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: HEADERS });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || res.statusText); }
+  return res.json();
+}
+
+async function queryCount(table) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+    headers: { ...HEADERS, 'Prefer': 'count=exact', 'Range': '0-0' }
+  });
+  const r = res.headers.get('Content-Range');
+  return r ? parseInt(r.split('/')[1]) : '—';
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  document.getElementById('status-text').textContent = msg;
+}
+
+async function loadCompounds(q = '') {
+  let params = 'select=id,name,type,description&order=id.asc&limit=100';
+  if (q) params += `&or=(name.ilike.*${q}*,type.ilike.*${q}*,description.ilike.*${q}*)`;
+  const tbody = document.getElementById('compounds-body');
+  try {
+    const data = await dbQuery('compounds', params);
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty">暂无数据 · No data found</td></tr>`;
+      return 0;
+    }
+    tbody.innerHTML = data.map((r,i) => `<tr>
+      <td class="dim mono">${String(i+1).padStart(2,'0')}</td>
+      <td><strong>${r.name||'—'}</strong></td>
+      <td class="dim">${r.type||'—'}</td>
+      <td class="dim">${r.description||'—'}</td>
+    </tr>`).join('');
+    return data.length;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#e07070">❌ ${e.message}</td></tr>`;
+    return 0;
+  }
+}
+
+async function loadSpecies() {
+  const tbody = document.getElementById('species-body');
+  try {
+    const data = await dbQuery('species', 'select=id,name_zh,name_latin,description&order=id.asc&limit=50');
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty">暂无物种数据</td></tr>`;
+      return 0;
+    }
+    tbody.innerHTML = data.map((r,i) => `<tr>
+      <td class="dim mono">${String(i+1).padStart(2,'0')}</td>
+      <td class="mono"><em>${r.name_latin||'—'}</em></td>
+      <td class="dim">${r.name_zh||'—'}</td>
+      <td class="dim">${r.description||'—'}</td>
+    </tr>`).join('');
+    return data.length;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#e07070">❌ ${e.message}</td></tr>`;
+    return 0;
+  }
+}
+
+async function loadStats() {
+  try {
+    const [c, s] = await Promise.all([queryCount('compounds'), queryCount('species')]);
+    document.getElementById('count-compounds').textContent = c;
+    document.getElementById('count-species').textContent = s;
+    document.getElementById('count-active').textContent = '—';
+  } catch(e) {}
+}
+
+async function doSearch() {
+  const q = document.getElementById('search').value.trim();
+  setStatus('loading', '搜索中...');
+  const n = await loadCompounds(q);
+  setStatus('success', `找到 ${n} 条记录`);
+}
+
+async function init() {
+  setStatus('loading', '正在连接 Supabase 数据库...');
+  try {
+    await Promise.all([loadStats(), loadCompounds(), loadSpecies()]);
+    setStatus('success', '✓ 数据库连接成功 · Connected to jgcibolwmwotsymhgtjr.supabase.co');
+  } catch(e) {
+    setStatus('error', '❌ 连接失败：' + e.message);
+  }
+}
+
+document.getElementById('search').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// Auto-init if already unlocked
+if (sessionStorage.getItem(SESSION_KEY) === '1') init();
+</script>
+
+</body>
+</html>
