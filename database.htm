@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ijan.app | 植物化学成分数据库</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .data-blur { filter: blur(4px); user-select: none; pointer-events: none; }
+        .lock-badge { background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+        .btn-primary { background-color: #1a4d7c; color: white; transition: 0.3s; }
+        .btn-primary:hover { background-color: #2c3e50; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <nav class="bg-white shadow-sm p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">ijan<span class="text-blue-600">.app</span></h1>
+            <div id="auth-status" class="flex items-center space-x-4">
+                <button onclick="toggleAuthModal()" class="text-sm font-medium text-gray-600">登录/注册</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 p-4">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">化合物活性库</h2>
+            <p id="role-indicator" class="text-sm text-gray-500">当前身份：访客 (数据受限)</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">HTF-1</h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Bufadienolide</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase font-bold">来源植物</span>
+                            <p class="text-sm text-gray-700">铁筷子 (Helleborus thibetanus)</p>
+                        </div>
+
+                        <div class="relative">
+                            <span class="text-xs text-gray-400 uppercase font-bold">核心活性 (IC50)</span>
+                            <div id="data-ic50" class="data-blur mt-1">
+                                <p class="text-sm font-mono text-blue-600">0.08 - 1.20 μM</p>
+                            </div>
+                            <div id="lock-ic50" class="absolute inset-0 flex items-center justify-center">
+                                <span class="lock-badge">🔒 研究员可见</span>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <span class="text-xs text-gray-400 uppercase font-bold">主要靶点</span>
+                            <div id="data-target" class="data-blur mt-1">
+                                <p class="text-sm text-gray-700">Na+/K+-ATPase Alpha 亚基</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-50">
+                        <button id="view-detail-btn" onclick="handleDetailClick()" class="w-full btn-primary py-2 rounded-md text-sm">查看完整机制报告</button>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+    </main>
+
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 text-center" id="modal-title">加入 ijan.app</h3>
+            <form id="auth-form" class="space-y-4">
+                <input type="email" id="email" placeholder="学术邮箱" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" required>
+                <input type="password" id="password" placeholder="密码" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" required>
+                <button type="submit" class="w-full btn-primary py-3 rounded-lg font-bold">确 认</button>
+            </form>
+            <p class="mt-4 text-center text-sm text-gray-500">
+                <a href="#" onclick="toggleMode()" id="toggle-text">没有账号？点击注册</a>
+            </p>
+            <button onclick="toggleAuthModal()" class="mt-4 w-full text-gray-400 text-xs">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Supabase
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let isLogin = true;
+
+        // 核心：权限渲染逻辑
+        async function updateUIBasedOnRole() {
+            const { data: { user } } = await supabase.auth.getUser();
+            const authStatus = document.getElementById('auth-status');
+            const roleIndicator = document.getElementById('role-indicator');
+            
+            if (user) {
+                // 获取用户扩展权限 (从 profiles 表)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('auth_level')
+                    .eq('id', user.id)
+                    .single();
+
+                const role = profile?.auth_level || 'member';
+                roleIndicator.innerText = `当前身份：${role.toUpperCase()}`;
+                authStatus.innerHTML = `<span class="text-sm text-gray-600">${user.email}</span><button onclick="signOut()" class="text-sm text-red-500">退出</button>`;
+
+                // 如果是 Researcher 或以上，解除数据模糊
+                if (['researcher', 'collaborator'].includes(role)) {
+                    document.getElementById('data-ic50').classList.remove('data-blur');
+                    document.getElementById('data-target').classList.remove('data-blur');
+                    document.getElementById('lock-ic50').classList.add('hidden');
+                }
+            } else {
+                roleIndicator.innerText = "当前身份：访客 (数据受限)";
+            }
+        }
+
+        // 处理登录/注册
+        document.getElementById('auth-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (isLogin) {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) alert(error.message);
+            } else {
+                const { error } = await supabase.auth.signUp({ email, password });
+                if (error) alert("请查看邮箱以验证注册！");
+            }
+            toggleAuthModal();
+            updateUIBasedOnRole();
+        };
+
+        // 退出登录
+        async function signOut() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // 详情点击引导
+        function handleDetailClick() {
+            supabase.auth.getUser().then(({data}) => {
+                if (!data.user) {
+                    alert("请先登录以查看研究数据");
+                    toggleAuthModal();
+                } else {
+                    alert("完整机制报告需 Researcher 权限，请联系管理员升级。");
+                }
+            });
+        }
+
+        function toggleAuthModal() {
+            document.getElementById('auth-modal').classList.toggle('hidden');
+        }
+
+        function toggleMode() {
+            isLogin = !isLogin;
+            document.getElementById('modal-title').innerText = isLogin ? "欢迎回来" : "注册新账号";
+            document.getElementById('toggle-text').innerText = isLogin ? "没有账号？点击注册" : "已有账号？点击登录";
+        }
+
+        // 页面加载时初始化
+        updateUIBasedOnRole();
+    </script>
+</body>
+</html>
