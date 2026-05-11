@@ -7,45 +7,25 @@
 
 <style>
 body{font-family:Arial, sans-serif;background:#0b0f14;color:#e8e4dc;margin:0}
-nav{padding:12px 20px;background:#111;border-bottom:1px solid #222; font-weight: bold;}
+nav{padding:12px 20px;background:#111;border-bottom:1px solid #222;font-weight:bold}
 .container{padding:20px;max-width:1000px;margin:auto}
 
-input, button{
-  padding:10px;
-  font-family:monospace;
-  outline: none;
-}
+input,button{padding:10px;font-family:monospace;outline:none}
 
-input {
-  background: #1a1f26;
-  border: 1px solid #333;
-  color: #fff;
-  flex: 1;
-  min-width: 200px;
+input{
+  background:#1a1f26;border:1px solid #333;color:#fff;flex:1;min-width:200px
 }
 
 button{
-  background:#6aab7e;
-  color: #0b0f14;
-  border:none;
-  cursor:pointer;
-  font-weight: bold;
+  background:#6aab7e;color:#0b0f14;border:none;cursor:pointer;font-weight:bold
 }
-
-button:hover {
-  background: #82c496;
-}
+button:hover{background:#82c496}
 
 table{width:100%;border-collapse:collapse;margin-top:20px}
 td,th{border-bottom:1px solid #222;padding:12px 10px;font-size:13px}
-th{color:#6aab7e;text-align:left;text-transform: uppercase;letter-spacing: 1px;}
+th{color:#6aab7e;text-align:left;text-transform:uppercase;letter-spacing:1px}
 
-.ai-box{
-  display:flex;
-  gap:10px;
-  margin-top:20px;
-  flex-wrap:wrap;
-}
+.ai-box{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 
 #ai-result{
   margin-top:20px;
@@ -53,18 +33,15 @@ th{color:#6aab7e;text-align:left;text-transform: uppercase;letter-spacing: 1px;}
   border:1px solid #333;
   display:none;
   background:#111;
-  line-height: 1.6;
-  border-radius: 4px;
+  line-height:1.6;
+  border-radius:4px;
 }
 </style>
-
 </head>
 
 <body>
 
-<nav>
-  🌿 WildPhytoDB · ijan.app
-</nav>
+<nav>🌿 WildPhytoDB · ijan.app</nav>
 
 <div class="container">
 
@@ -75,46 +52,55 @@ th{color:#6aab7e;text-align:left;text-transform: uppercase;letter-spacing: 1px;}
 
 <div id="ai-result"></div>
 
-<h3 style="margin-top:40px; color:#6aab7e;">Species List</h3>
+<h3 style="margin-top:40px;color:#6aab7e;">Species List</h3>
+
 <table>
 <thead>
 <tr>
-<th style="width: 40px;">#</th>
+<th style="width:40px;">#</th>
 <th>Latin Name</th>
 <th>Chinese Name</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody id="sp-body">
-  <tr><td colspan="4">正在加载数据...</td></tr>
+<tr><td colspan="4">正在加载数据...</td></tr>
 </tbody>
 </table>
 
 </div>
 
 <script>
-// =====================
-// Supabase Config (已填入你的配置)
-// =====================
-const SB = "https://jgcibolwmwotsymhgtjr.supabase.co";
-const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI";
 
 // =====================
-// Fetch Helper
+// Supabase Config
+// =====================
+const SB  = "https://jgcibolwmwotsymhgtjr.supabase.co";
+const KEY = "YOUR_ANON_KEY";
+
+// =====================
+// Fetch helper
 // =====================
 async function get(path) {
-  const response = await fetch(SB + path, {
+  const res = await fetch(SB + path, {
+    method: "GET",
     headers: {
       "apikey": KEY,
-      "Authorization": "Bearer " + KEY
+      "Authorization": "Bearer " + KEY,
+      "Accept": "application/json"
     }
   });
-  if (!response.ok) throw new Error("请求失败: " + response.statusText);
-  return response.json();
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text);
+  }
+
+  return res.json();
 }
 
 // =====================
-// Load Species (修正了字段名)
+// Load species
 // =====================
 async function loadSpecies() {
   const tbody = document.getElementById("sp-body");
@@ -123,75 +109,67 @@ async function loadSpecies() {
     const data = await get("/rest/v1/species?select=*&order=id.asc");
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='4'>暂无数据 (请确认数据库内容及 RLS 策略)</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='4'>暂无数据（检查 RLS / 表数据）</td></tr>";
       return;
     }
 
     tbody.innerHTML = data.map((r, i) => `
       <tr>
-        <td style="color: #666;">${i + 1}</td>
-        <td style="font-style: italic; color: #fff;">${r.name || r.name_latin || "-"}</td>
+        <td style="color:#666">${i + 1}</td>
+        <td style="font-style:italic;color:#fff">${r.name_latin || "-"}</td>
         <td>${r.name_zh || "-"}</td>
-        <td style="color: #aaa;">${r.description || "-"}</td>
+        <td style="color:#aaa">${r.description || "-"}</td>
       </tr>
     `).join("");
 
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan='4' style='color:#ff6b6b'>加载出错: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="color:#ff6b6b">加载失败: ${err.message}</td></tr>`;
   }
 }
 
 // =====================
-// AI function
+// AI Analysis (Edge Function)
 // =====================
 async function runAIAnalysis() {
-  const speciesInput = document.getElementById("ai-species").value;
-
-  if (!speciesInput) {
-    alert("请输入植物名称");
-    return;
-  }
+  const input = document.getElementById("ai-species").value;
+  if (!input) return alert("请输入植物名称");
 
   const box = document.getElementById("ai-result");
   box.style.display = "block";
-  box.innerHTML = "<span style='color:#6aab7e'>🧠 AI 正在分析研究数据，请稍候...</span>";
+  box.innerHTML = "🧠 AI 分析中...";
 
   try {
-    const response = await fetch(SB + "/functions/v1/analyze_species", {
+    const res = await fetch(SB + "/functions/v1/analyze_species", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": KEY
+        "apikey": KEY,
+        "Authorization": "Bearer " + KEY
       },
       body: JSON.stringify({
-        species: speciesInput,
-        compounds: []
+        species: input
       })
     });
 
-    const d = await response.json();
+    const d = await res.json();
 
     box.innerHTML = `
-      <h3 style="color:#6aab7e; margin-top:0;">🔬 AI Research Report</h3>
-      <div style="display: grid; gap: 8px;">
-        <p><b>Species:</b> ${d.species || speciesInput}</p>
-        <p><b>Mechanism:</b> ${d.mechanism || "未知"}</p>
-        <p><b>Bioactivity:</b> ${d.bioactivity || "数据不足"}</p>
-        <p><b>Risk:</b> <span style="color:#ffb86c">${d.risk || "评估中"}</span></p>
-        <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-        <p><b>Summary:</b> ${d.summary || "分析完成"}</p>
-      </div>
+      <h3 style="color:#6aab7e;margin-top:0">🔬 AI Report</h3>
+      <p><b>Species:</b> ${d.species || input}</p>
+      <p><b>Mechanism:</b> ${d.mechanism || "-"}</p>
+      <p><b>Bioactivity:</b> ${d.bioactivity || "-"}</p>
+      <p><b>Risk:</b> <span style="color:#ffb86c">${d.risk || "-"}</span></p>
+      <hr style="border:0;border-top:1px solid #333">
+      <p><b>Summary:</b> ${d.summary || "-"}</p>
     `;
 
   } catch (e) {
-    box.innerHTML = "<span style='color:#ff6b6b'>❌ 分析失败: " + e.message + "</span>";
+    box.innerHTML = "❌ 请求失败：" + e.message;
   }
 }
 
-// =====================
-// Init
-// =====================
+// init
 window.onload = loadSpecies;
 
 </script>
