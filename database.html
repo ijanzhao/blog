@@ -1,0 +1,31 @@
+function loadSpecies() {
+  var tbody = document.getElementById("sp-body");
+
+  get("/rest/v1/species?select=*", false)
+    .then(function(d) {
+
+      if (!d || !d.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="4" class="empty">暂无物种数据</td></tr>';
+        return;
+      }
+
+      document.getElementById("cnt-s").textContent = d.length;
+
+      tbody.innerHTML = d.map(function(r, i) {
+        return `
+          <tr>
+            <td class="m">${pad(i + 1)}</td>
+            <td class="m"><em>${r.name_latin || "—"}</em></td>
+            <td class="d">${r.name_zh || "—"}</td>
+            <td class="d">${r.description || "—"}</td>
+          </tr>
+        `;
+      }).join("");
+
+    })
+    .catch(function(e) {
+      tbody.innerHTML =
+        '<tr><td colspan="4" class="empty">❌ ' + e.message + '</td></tr>';
+    });
+}
