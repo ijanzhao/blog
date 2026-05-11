@@ -1,126 +1,179 @@
-<!-- AI ANALYSIS PANEL -->
-<div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WildPhytoDB · ijan.app</title>
 
-  <input 
-    id="ai-species"
-    placeholder="输入植物名称，例如 Helleborus"
-    style="
-      flex:1;
-      min-width:220px;
-      background:#080c10;
-      border:1px solid rgba(255,255,255,0.07);
-      color:#e8e4dc;
-      padding:10px 12px;
-      font-family:Courier New,monospace;
-      font-size:12px;
-      outline:none;
-    "
-  >
+<style>
+body{font-family:Arial;background:#0b0f14;color:#e8e4dc;margin:0}
+nav{padding:12px 20px;background:#111;border-bottom:1px solid #222}
+.container{padding:20px;max-width:1000px;margin:auto}
 
-  <button
-    onclick="runAIAnalysis()"
-    style="
-      background:#6aab7e;
-      color:#080c10;
-      border:none;
-      padding:10px 18px;
-      font-family:Courier New,monospace;
-      font-size:11px;
-      text-transform:uppercase;
-      cursor:pointer;
-    "
-  >
-    AI Analyze
-  </button>
+input,button{
+  padding:10px;
+  font-family:monospace;
+}
+
+button{
+  background:#6aab7e;
+  border:none;
+  cursor:pointer;
+}
+
+table{width:100%;border-collapse:collapse;margin-top:20px}
+td,th{border-bottom:1px solid #222;padding:10px;font-size:13px}
+th{color:#6aab7e;text-align:left}
+
+.ai-box{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+  flex-wrap:wrap;
+}
+
+#ai-result{
+  margin-top:20px;
+  padding:15px;
+  border:1px solid #333;
+  display:none;
+  background:#111;
+}
+</style>
+
+</head>
+
+<body>
+
+<nav>
+  🌿 WildPhytoDB · ijan.app
+</nav>
+
+<div class="container">
+
+<!-- AI 输入区 -->
+<div class="ai-box">
+  <input id="ai-species" placeholder="输入植物名称，例如 Helleborus">
+  <button onclick="runAIAnalysis()">AI Analyze</button>
+</div>
+
+<div id="ai-result"></div>
+
+<!-- Species Table -->
+<h3>Species</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Latin</th>
+<th>Chinese</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody id="sp-body"></tbody>
+</table>
 
 </div>
 
-<div 
-  id="ai-result"
-  style="
-    margin:20px;
-    border:1px solid rgba(255,255,255,0.07);
-    padding:16px;
-    background:#0d1318;
-    display:none;
-  "
-></div>
-
 <script>
-function runAIAnalysis() {
+// =====================
+// Supabase config
+// =====================
+var SB = "https://jgcibolwmwotsymhgtjr.supabase.co";
+var KEY = "YOUR_ANON_KEY";
 
-  var species = document.getElementById("ai-species").value.trim();
+// =====================
+// fetch helper
+// =====================
+function get(url){
+  return fetch(SB + url, {
+    headers:{
+      apikey: KEY,
+      Authorization: "Bearer " + KEY
+    }
+  }).then(r=>r.json());
+}
 
-  if (!species) {
+// =====================
+// load species
+// =====================
+function loadSpecies(){
+  var tbody = document.getElementById("sp-body");
+
+  get("/rest/v1/species?select=*")
+  .then(function(d){
+
+    if(!d || !d.length){
+      tbody.innerHTML = "<tr><td colspan='4'>暂无数据</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = d.map(function(r,i){
+      return `
+        <tr>
+          <td>${i+1}</td>
+          <td>${r.name_latin || "-"}</td>
+          <td>${r.name_zh || "-"}</td>
+          <td>${r.description || "-"}</td>
+        </tr>
+      `;
+    }).join("");
+
+  });
+}
+
+// =====================
+// AI function
+// =====================
+function runAIAnalysis(){
+
+  var species = document.getElementById("ai-species").value;
+
+  if(!species){
     alert("请输入植物名称");
     return;
   }
 
   var box = document.getElementById("ai-result");
-
   box.style.display = "block";
-
   box.innerHTML = "🧠 AI分析中...";
 
-  fetch(
-    SB + "/functions/v1/analyze_species",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": KEY
-      },
-      body: JSON.stringify({
-        species: species,
-        compounds: []
-      })
-    }
-  )
-  .then(function(r) {
-    return r.json();
+  fetch(SB + "/functions/v1/analyze_species", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      apikey: KEY
+    },
+    body: JSON.stringify({
+      species: species,
+      compounds:[]
+    })
   })
-  .then(function(data) {
+  .then(r=>r.json())
+  .then(function(d){
 
     box.innerHTML = `
-      <div style="font-family:Georgia,serif;font-size:20px;color:#6aab7e;margin-bottom:14px">
-        AI Research Report
-      </div>
-
-      <div style="margin-bottom:10px">
-        <strong>Species:</strong><br>
-        ${data.species || "—"}
-      </div>
-
-      <div style="margin-bottom:10px">
-        <strong>Mechanism:</strong><br>
-        ${data.mechanism || "—"}
-      </div>
-
-      <div style="margin-bottom:10px">
-        <strong>Bioactivity:</strong><br>
-        ${data.bioactivity || "—"}
-      </div>
-
-      <div style="margin-bottom:10px">
-        <strong>Risk:</strong><br>
-        ${data.risk || "—"}
-      </div>
-
-      <div>
-        <strong>Summary:</strong><br>
-        ${data.summary || "—"}
-      </div>
+      <h3 style="color:#6aab7e">AI Research Report</h3>
+      <p><b>Species:</b> ${d.species}</p>
+      <p><b>Mechanism:</b> ${d.mechanism}</p>
+      <p><b>Bioactivity:</b> ${d.bioactivity}</p>
+      <p><b>Risk:</b> ${d.risk}</p>
+      <p><b>Summary:</b> ${d.summary}</p>
     `;
 
   })
-  .catch(function(err) {
-
-    box.innerHTML = `
-      <div style="color:#e07070">
-        ❌ AI分析失败<br><br>
-        ${err.message}
-      </div>
-    `;
+  .catch(function(e){
+    box.innerHTML = "❌ " + e.message;
   });
+
 }
+
+// =====================
+// init
+// =====================
+loadSpecies();
+
 </script>
+
+</body>
+</html>
