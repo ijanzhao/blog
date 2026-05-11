@@ -1,0 +1,6 @@
+create table relationships (
+  id uuid primary key default gen_random_uuid(),
+  source_id uuid,
+  target_id uuid,
+  type text
+);
