@@ -1,0 +1,126 @@
+<!-- AI ANALYSIS PANEL -->
+<div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+
+  <input 
+    id="ai-species"
+    placeholder="输入植物名称，例如 Helleborus"
+    style="
+      flex:1;
+      min-width:220px;
+      background:#080c10;
+      border:1px solid rgba(255,255,255,0.07);
+      color:#e8e4dc;
+      padding:10px 12px;
+      font-family:Courier New,monospace;
+      font-size:12px;
+      outline:none;
+    "
+  >
+
+  <button
+    onclick="runAIAnalysis()"
+    style="
+      background:#6aab7e;
+      color:#080c10;
+      border:none;
+      padding:10px 18px;
+      font-family:Courier New,monospace;
+      font-size:11px;
+      text-transform:uppercase;
+      cursor:pointer;
+    "
+  >
+    AI Analyze
+  </button>
+
+</div>
+
+<div 
+  id="ai-result"
+  style="
+    margin:20px;
+    border:1px solid rgba(255,255,255,0.07);
+    padding:16px;
+    background:#0d1318;
+    display:none;
+  "
+></div>
+
+<script>
+function runAIAnalysis() {
+
+  var species = document.getElementById("ai-species").value.trim();
+
+  if (!species) {
+    alert("请输入植物名称");
+    return;
+  }
+
+  var box = document.getElementById("ai-result");
+
+  box.style.display = "block";
+
+  box.innerHTML = "🧠 AI分析中...";
+
+  fetch(
+    SB + "/functions/v1/analyze_species",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": KEY
+      },
+      body: JSON.stringify({
+        species: species,
+        compounds: []
+      })
+    }
+  )
+  .then(function(r) {
+    return r.json();
+  })
+  .then(function(data) {
+
+    box.innerHTML = `
+      <div style="font-family:Georgia,serif;font-size:20px;color:#6aab7e;margin-bottom:14px">
+        AI Research Report
+      </div>
+
+      <div style="margin-bottom:10px">
+        <strong>Species:</strong><br>
+        ${data.species || "—"}
+      </div>
+
+      <div style="margin-bottom:10px">
+        <strong>Mechanism:</strong><br>
+        ${data.mechanism || "—"}
+      </div>
+
+      <div style="margin-bottom:10px">
+        <strong>Bioactivity:</strong><br>
+        ${data.bioactivity || "—"}
+      </div>
+
+      <div style="margin-bottom:10px">
+        <strong>Risk:</strong><br>
+        ${data.risk || "—"}
+      </div>
+
+      <div>
+        <strong>Summary:</strong><br>
+        ${data.summary || "—"}
+      </div>
+    `;
+
+  })
+  .catch(function(err) {
+
+    box.innerHTML = `
+      <div style="color:#e07070">
+        ❌ AI分析失败<br><br>
+        ${err.message}
+      </div>
+    `;
+  });
+}
+</script>
