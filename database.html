@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WildPhytoDB · ijan.app</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0b0f14;color:#e8e4dc;margin:0}
+  nav{padding:12px 20px;background:#111;border-bottom:1px solid #222;font-weight:bold;color:#6aab7e}
+  .container{padding:20px;max-width:1000px;margin:auto}
+  .ai-box{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap}
+  input{background:#1a1f26;border:1px solid #333;color:#fff;padding:12px;flex:1;min-width:200px;outline:none;border-radius:4px}
+  button{background:#6aab7e;color:#0b0f14;border:none;padding:10px 25px;cursor:pointer;font-weight:bold;border-radius:4px}
+  button:hover{background:#82c496}
+  button:disabled{background:#444;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse;margin-top:20px}
+  td,th{border-bottom:1px solid #222;padding:12px 10px;font-size:13px}
+  th{color:#6aab7e;text-align:left;text-transform:uppercase}
+  #ai-result{margin-top:20px;padding:20px;border:1px solid #333;display:none;background:#111;border-radius:4px;line-height:1.7;border-left:4px solid #6aab7e}
+  .loading-text{color:#6aab7e;font-weight:bold;animation:fade 1s infinite alternate}
+  @keyframes fade { from {opacity:0.5} to {opacity:1} }
+</style>
+</head>
+<body>
+
+<nav>🌿 WildPhytoDB · ijan.app</nav>
+
+<div class="container">
+  <div class="ai-box">
+    <input id="ai-species" placeholder="输入植物学名，例如 Helleborus thibetanus">
+    <button id="ai-btn" onclick="runAIAnalysis()">AI Analyze</button>
+  </div>
+  
+  <div id="ai-result"></div>
+
+  <h2 style="font-size:18px;color:#6aab7e;margin-top:40px">Scientific Species Data</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Latin Name</th><th>Chinese Name</th><th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td><td>Helleborus thibetanus</td><td>铁筷子</td><td>冷域野生植物，含HTF-1心苷，具抗肿瘤活性</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// 使用您提供的項目數據進行自動配置
+const SB_URL = "https://gotdehypsbkbyrasdbrr.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdGRlaHlwc2JrYnlyYXNkYnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTE2OTYsImV4cCI6MjA5MTYyNzY5Nn0.c1CQyofm8R6V6kR4_lAIBrDaCVI-WuLONWyFaF32odc";
+
+async function runAIAnalysis() {
+  const nameInput = document.getElementById("ai-species");
+  const name = nameInput.value.trim();
+  if (!name) return alert("请输入植物名称");
+
+  const box = document.getElementById("ai-result");
+  const btn = document.getElementById("ai-btn");
+
+  box.style.display = "block";
+  box.innerHTML = `<div class="loading-text">🧠 AI 正在分析 ${name} 的药理成分...</div>`;
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${SB_URL}/functions/v1/analyze-species`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SB_KEY,
+        "Authorization": `Bearer ${SB_KEY}`
+      },
+      body: JSON.stringify({ name: name })
+    });
+
+    if (!res.ok) throw new Error(`分析請求失敗 (HTTP ${res.status})`);
+
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || "AI 未返回結果");
+
+    box.innerHTML = `
+      <h3 style="color:#6aab7e;margin-top:0">🔬 ${name} 藥理分析報告</h3>
+      <div style="white-space:pre-wrap;font-size:14px;color:#e8e4dc">${d.result}</div>
+    `;
+
+  } catch (e) {
+    box.innerHTML = `<div style="color:#ff6b6b">❌ 錯誤：${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
