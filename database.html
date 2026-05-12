@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPhytoDB - 植物藥理數據庫</title>
+    <style>
+        :root {
+            --primary-green: #6aab7e;
+            --bg-dark: #0d1117;
+            --text-main: #e8e4dc;
+            --card-bg: rgba(106, 171, 126, 0.05);
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px 15px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--primary-green); }
+        
+        .ai-btn {
+            background-color: var(--primary-green);
+            color: #0d1117;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .ai-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .ai-btn:disabled { background-color: #444; cursor: not-allowed; }
+
+        #ai-result {
+            display: none;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(106, 171, 126, 0.2);
+            background: var(--card-bg);
+        }
+        .report-card {
+            border-left: 4px solid var(--primary-green);
+            padding: 20px;
+        }
+        .report-header {
+            color: var(--primary-green);
+            margin-top: 0;
+            font-family: serif;
+        }
+        .report-content {
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #d1d5db;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .loading {
+            color: var(--primary-green);
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+            padding: 20px;
+            text-align: center;
+        }
+        .error-card {
+            color: #ff6b6b;
+            padding: 15px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="color: var(--primary-green); display: flex; align-items: center; gap: 10px;">
+        🌿 WildPhytoDB <small style="font-size: 12px; color: #666;">ijan.app</small>
+    </h1>
+    
+    <div class="search-section">
+        <input type="text" id="ai-species" placeholder="輸入植物學名 (例如: Helleborus thibetanus)...">
+        <button class="ai-btn" onclick="runAIAnalysis()">AI Analyze</button>
+    </div>
+
+    <div id="ai-result"></div>
+
+    <div style="margin-top: 40px;">
+        <h2 style="font-size: 18px; color: #8b949e; border-bottom: 1px solid #333; padding-bottom: 5px;">
+            Scientific Species Data
+        </h2>
+        </div>
+</div>
+
+<script>
+    // --- 基礎配置 (請確保這些變量已正確定義) ---
+    // 如果您在 config.js 中已有定義，可刪除下面兩行
+    const SB_URL = "https://你的項目ID.supabase.co"; 
+    const SB_KEY = "你的ANON_KEY"; 
+
+    async function runAIAnalysis() {
+        const input = document.getElementById("ai-species");
+        const name = input.value.trim();
+        if (!name) return alert("請輸入植物名稱");
+
+        const box = document.getElementById("ai-result");
+        const btn = document.querySelector(".ai-btn");
+        
+        // 1. 初始化狀態
+        box.style.display = "block";
+        box.innerHTML = `<div class="loading">🧠 ijan.app AI 正在檢索冷域植物藥理數據庫...</div>`;
+        btn.disabled = true;
+
+        try {
+            // 2. 發起請求 (對應您的 Edge Function: analyze-species)
+            const res = await fetch(`${SB_URL}/functions/v1/analyze-species`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": SB_KEY,
+                    "Authorization": `Bearer ${SB_KEY}`
+                },
+                body: JSON.stringify({ name: name })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || `HTTP 錯誤: ${res.status}`);
+            }
+
+            const d = await res.json();
+            if (!d.success) throw new Error(d.error || "分析失敗");
+
+            // 3. 渲染科研報告內容
+            box.innerHTML = `
+                <div class="report-card">
+                    <h3 class="report-header">🔬 ${name} 藥理分析報告</h3>
+                    <div class="report-content">${d.result}</div>
+                    <div style="margin-top:20px; font-size:10px; color:#555; text-align:right; border-top: 1px solid #222; padding-top: 10px;">
+                        ijan.app AI Research Engine | Claude 3.5 Sonnet
+                    </div>
+                </div>
+            `;
+
+        } catch (e) {
+            console.error(e);
+            box.innerHTML = `
+                <div class="error-card">
+                    ❌ 錯誤：${e.message}<br>
+                    <small style="color: #666; font-size: 11px;">
+                        診斷提示：請檢查 Edge Function 部署指令是否包含 --no-verify-jwt，並確認已設置 ANTHROPIC_API_KEY。
+                    </small>
+                </div>
+            `;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
