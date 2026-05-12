@@ -1,0 +1,31 @@
+async function runAIAnalysis() {
+  const name = document.getElementById("ai-species").value.trim();
+  if (!name) return alert("请输入植物名称");
+
+  const box = document.getElementById("ai-result");
+  box.style.display = "block";
+  box.innerHTML = "<span style='color:#6aab7e'>🧠 AI 正在分析...</span>";
+
+  try {
+    const res = await fetch(`${SB_URL}/functions/v1/analyze-species`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SB_KEY,
+        "Authorization": `Bearer ${SB_KEY}`
+      },
+      body: JSON.stringify({ name: name })
+    });
+
+    const d = await res.json();
+
+    if (!d.success) throw new Error(d.error || "未知错误");
+
+    box.innerHTML = `
+      <h3 style="color:#6aab7e;margin-top:0">🔬 ${name} 分析报告</h3>
+      <div style="white-space:pre-wrap;color:#e8e4dc">${d.result}</div>
+    `;
+  } catch (e) {
+    box.innerHTML = `<span style='color:#ff6b6b'>❌ 错误：${e.message}</span>`;
+  }
+}
