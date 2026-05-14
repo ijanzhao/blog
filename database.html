@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>冷域本草 · 研发智库</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { background: #07090d; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ═══════════════════════════════════════════════════════════════
+// MASTER SPECIES DATABASE
+// ═══════════════════════════════════════════════════════════════
+const SPECIES_DB = {
+  helleborus: {
+    id: "helleborus", latin: "Helleborus thibetanus", chinese: "铁筷子",
+    alias: "冷域铁筷子 / HTF-1心苷", color: "#7c3aed", accent: "#a78bfa", glyph: "◈",
+    tag: "抗肿瘤先导", tier: "旗舰",
+    summary: "冷域野生植物，含HTF-1心苷，Na⁺/K⁺-ATPase靶点，抗肿瘤活性显著",
+    keyCompounds: ["HTF-1心苷", "HFPS多糖", "β-谷甾醇"],
+    tracks: ["抗肿瘤", "心血管", "免疫调节"], trl: 4, innovScore: 94, marketScore: 88,
+    systemPrompt: "你是铁筷子（Helleborus thibetanus）天然产物研发专家，专精HTF-1心苷的Na⁺/K⁺-ATPase抑制机制、MAPK通路调控、纳米药物递送设计（LNP+pH响应前药）和NMPA/IND申报策略。请用中文回答，专业术语附英文，分层次输出。",
+    quickQ: ["HTF-1心苷的Na⁺/K⁺-ATPase抑制机制","HTF-1纳米递送系统设计方案","HFPS多糖免疫活性研究路径","IND申报材料准备清单","铁筷子与洋地黄苷类的结构差异","NMPA孤儿药资格申请策略"],
+    innovations: [
+      { title: "HTF-1衍生物库", desc: "C3/C17位修饰→选择性Na⁺/K⁺-ATPase抑制剂", score: 94 },
+      { title: "pH响应LNP纳米递送", desc: "肿瘤微环境靶向释放，降低心脏毒性", score: 91 },
+      { title: "HFPS蓝帽保健品", desc: "多糖免疫调节功能食品，快速变现", score: 72 },
+      { title: "冷域GAP栽培基地", desc: "资源可持续供应链，CDMO原料药", score: 85 },
+    ],
+  },
+  sinopodophyllum: {
+    id: "sinopodophyllum", latin: "Sinopodophyllum hexandrum", chinese: "桃儿七",
+    alias: "鬼臼 / 小叶莲 / Himalayan Mayapple", color: "#b45309", accent: "#fbbf24", glyph: "⚗",
+    tag: "PPT原料药", tier: "旗舰",
+    summary: "含鬼臼毒素（podophyllotoxin），依托泊苷全球唯一天然原料来源，抗肿瘤衍生物开发与CDMO双轨",
+    keyCompounds: ["鬼臼毒素", "α/β-盾叶鬼臼素", "去氧鬼臼毒素", "山奈酚", "槲皮素"],
+    tracks: ["抗肿瘤衍生物", "原料药CDMO", "局部给药"], trl: 6, innovScore: 95, marketScore: 92,
+    systemPrompt: "你是桃儿七（Sinopodophyllum hexandrum）天然产物研发战略专家。核心成分：鬼臼毒素(podophyllotoxin,PPT)、α/β-盾叶鬼臼素(peltatin)、去氧鬼臼毒素、山奈酚、槲皮素。药理：抗白血病L1210、淋巴肉瘤、乳腺癌C3HBA、黑色素瘤S-91；毒性：LD50<10mg/kg，中毒症状呕吐/运动失调/昏迷；用量1.5-6g/日。五大平台：PPT衍生物库(化药1类IND)、天然PPT原料药CDMO(GAP+GMP)、改良局部制剂(2.2类)、全谱提取物蓝帽、α/β-Peltatin立体化学研究。请用中文回答，提供可落地技术路线和监管策略。",
+    quickQ: ["鬼臼毒素C4β位点衍生物库设计方案","α-peltatin与β-peltatin构效关系差异","天然PPT原料药CDMO启动资金和资源","PPT微针贴片技术可行性分析","全谱提取物蓝帽木脂素安全阈值","GAP桃儿七栽培基地选址与规模测算"],
+    innovations: [
+      { title: "PPT衍生物候选药库", desc: "C4β/C1/C2系统修饰→克服MDR耐药，IND申报", score: 95 },
+      { title: "天然PPT原料药CDMO", desc: "全球依托泊苷唯一天然来源，GAP+GMP双认证", score: 91 },
+      { title: "改良型PPT局部制剂", desc: "纳米乳凝胶/微针贴片→2.2类改良新药，皮肤科", score: 84 },
+      { title: "全谱提取物功能食品", desc: "黄酮为核心活性，蓝帽抗氧化/免疫调节快速变现", score: 76 },
+    ],
+  },
+  achillea: {
+    id: "achillea", latin: "Achillea millefolium", chinese: "欧蓍草",
+    alias: "西洋蓍草 / Yarrow", color: "#0369a1", accent: "#38bdf8", glyph: "⬡",
+    tag: "创伤修复", tier: "战略",
+    summary: "创伤修复草本，含Achillin、芹菜素，Franz Cell透皮数据优异，九SKU三层产品体系",
+    keyCompounds: ["Achillin", "芹菜素", "母菊薁", "α-侧柏酮"],
+    tracks: ["皮肤修复", "静脉舒适", "抗炎"], trl: 6, innovScore: 87, marketScore: 91,
+    systemPrompt: "你是欧蓍草（Achillea millefolium）配方研发专家，专精F-01创伤修复凝胶、F-02/F-03静脉舒适凝胶配方优化，Franz Cell透皮渗透SOP设计，NMPA化妆品备案和EMA THR传统草药注册策略。核心：Achillin抗炎机制、芹菜素透皮参数、九SKU三层体系。请用中文回答，提供可操作技术细节。",
+    quickQ: ["F-01创伤修复凝胶最优配方组合","Franz Cell透皮SOP关键参数","欧盟EMA THR传统草药申请路径","Achillin与芹菜素协同抗炎机制","亚洲市场CBEC快速进入策略","九SKU三层产品体系定价策略"],
+    innovations: [
+      { title: "F-01创伤修复凝胶", desc: "Achillin+芹菜素双效配方，NMPA化妆品备案", score: 87 },
+      { title: "F-02静脉舒适系列", desc: "下肢静脉曲张辅助护理，医疗器械路径", score: 82 },
+      { title: "透皮递送系统专利", desc: "Q-marker组合物专利+Franz Cell验证数据", score: 79 },
+      { title: "EMA THR品牌出口", desc: "欧洲传统草药认证→溢价市场进入", score: 88 },
+    ],
+  },
+  bergenia: {
+    id: "bergenia", latin: "Bergenia crassifolia", chinese: "岩白菜",
+    alias: "厚叶岩白菜 / 冷域岩生草本", color: "#be185d", accent: "#fb7185", glyph: "❋",
+    tag: "Arbutin美白", tier: "战略",
+    summary: "高原岩生草本，熊果苷(Arbutin)美白原料核心来源，天然提取认证差异化对抗合成竞品",
+    keyCompounds: ["熊果苷(Arbutin)", "岩白菜素(Bergenin)", "没食子酸", "儿茶素"],
+    tracks: ["美白护肤", "抗炎镇咳", "肝脏保护"], trl: 5, innovScore: 82, marketScore: 85,
+    systemPrompt: "你是岩白菜（Bergenia crassifolia）美白化妆品原料研发专家，核心专长是熊果苷（Arbutin）提取纯化、配方应用和NMPA注册策略。关键数据：Arbutin竞争性抑制酪氨酸酶IC50≈0.3mM，NMPA已使用原料目录收录，限用浓度面部≤3%，岩白菜叶含量0.5-2%根茎0.8-3%，高原冷域来源比平原高30-50%。提取工艺：70%乙醇50°C超声30min，大孔树脂AB-8纯化，HPLC纯度>98%。产品线：高纯Arbutin原料B2B、美白精华(Arbutin2%+Bergenin0.5%+烟酰胺3%)、淡斑面膜、男士晒后修复。专利方向：Arbutin+Bergenin+没食子酸三元组合物。请用中文回答，提供配方浓度、工艺参数、NMPA注册细节和商业化方案。",
+    quickQ: ["高纯Arbutin提取纯化工艺SOP（岩白菜来源）","Arbutin+Bergenin协同美白配方最优比例","NMPA特殊化妆品祛斑美白注册资料清单","岩白菜美白精华液完整配方设计","β-熊果苷与α-熊果苷稳定性与活性比较","高原天然Arbutin vs 合成Arbutin差异化定位策略"],
+    innovations: [
+      { title: "高纯Arbutin原料B2B供应", desc: "≥98%纯度，天然提取认证，快速变现切入口", score: 90 },
+      { title: "岩白菜美白精华配方专利", desc: "Arbutin+Bergenin+没食子酸三元组合物专利", score: 86 },
+      { title: "高原天然来源Clean Beauty", desc: "青藏溯源认证，差异化对抗合成Arbutin低价竞争", score: 88 },
+      { title: "Bergenin护肝蓝帽（辅线）", desc: "NF-κB抑制+CCl4保护，蓝帽保健食品注册", score: 72 },
+    ],
+  },
+  euphrasia: {
+    id: "euphrasia", latin: "Euphrasia officinalis", chinese: "明目草",
+    alias: "小米草 / Eyebright", color: "#0f766e", accent: "#2dd4bf", glyph: "◎",
+    tag: "眼部护理", tier: "快变",
+    summary: "眼部护理草本，含Aucubin配糖体，三轨并行：化妆品凝胶、无菌滴眼液、抗炎研究",
+    keyCompounds: ["Aucubin", "桃叶珊瑚苷", "芦丁", "咖啡酸"],
+    tracks: ["眼部护理", "抗炎", "医疗器械"], trl: 5, innovScore: 81, marketScore: 86,
+    systemPrompt: "你是明目草（Euphrasia officinalis）研发专家，专精三轨并行：Path C眼部水凝胶化妆品、Path B无菌眼用溶液（NMPA II类医疗器械）、Aucubin+他克莫司协同抗炎研究。掌握Chou-Talalay CI法，EMA THR和NMPA双轨注册，异源协同专利布局。请用中文回答，提供具体实验方案和监管路径。",
+    quickQ: ["Path B无菌滴眼液GMP生产要求","Aucubin+他克莫司Chou-Talalay验证方案","NMPA II类医疗器械注册资料准备","眼部水凝胶流变学参数优化","EMA THR眼用制剂申请可行性","异源协同专利布局策略"],
+    innovations: [
+      { title: "无菌眼用溶液（Path B）", desc: "NMPA II类医疗器械，干眼症市场", score: 88 },
+      { title: "眼部轮廓水凝胶（Path C）", desc: "化妆品备案，6-12个月快速上市", score: 83 },
+      { title: "Aucubin协同抗炎研究", desc: "异源协同专利+学术发表双轨", score: 76 },
+      { title: "蓝光防护功能声称", desc: "数字时代护眼场景，新兴市场", score: 79 },
+    ],
+  },
+  urtica: {
+    id: "urtica", latin: "Urtica dioica", chinese: "野生荨麻",
+    alias: "冷域野生 / Stinging Nettle", color: "#166534", accent: "#4ade80", glyph: "✦",
+    tag: "多组分Q-marker", tier: "战略",
+    summary: "冷域野生，含芸香苷、槲皮苷、绿原酸，Q-marker专利+双轨RCT设计",
+    keyCompounds: ["芸香苷", "异槲皮苷", "绿原酸", "β-谷甾醇"],
+    tracks: ["抗炎", "男性健康", "骨代谢"], trl: 5, innovScore: 83, marketScore: 79,
+    systemPrompt: "你是冷域野生荨麻（Urtica dioica）研发专家，专精Q-marker体系建立（芸香苷:异槲皮苷:绿原酸比例专利），双轨RCT设计，七层竞争护城河，男性健康复方（锯棕榈+β-谷甾醇）。细胞模型：MC3T3-E1骨代谢、RAW264.7抗炎、HepG2肝保护，冷应激小鼠模型。请用中文回答。",
+    quickQ: ["Q-marker组合物专利申请方案","双轨RCT临床设计要点","冷域来源溯源认证体系建立","男性健康复方（荨麻+锯棕榈）配比","RAW264.7抗炎模型实验方案","七层竞争护城河构建优先级"],
+    innovations: [
+      { title: "Q-marker三元组合专利", desc: "芸香苷:异槲皮苷:绿原酸比例专利壁垒", score: 91 },
+      { title: "冷域溯源品牌体系", desc: "高海拔冷应激→活性成分溢价认证", score: 85 },
+      { title: "男性健康复方蓝帽", desc: "荨麻+锯棕榈+β-谷甾醇，前列腺健康", score: 78 },
+      { title: "双轨RCT临床证据", desc: "学术发表+注册双轨，构建临床壁垒", score: 82 },
+    ],
+  },
+  rubus: {
+    id: "rubus", latin: "Rubus idaeus", chinese: "冷域覆盆子",
+    alias: "野生树莓 / Wild Raspberry", color: "#9d174d", accent: "#f472b6", glyph: "◆",
+    tag: "花青素溢价", tier: "快变",
+    summary: "野生浆果，富含花青素和鞣花酸，FDA GRAS+EU Novel Food+中国蓝帽全球三轨认证",
+    keyCompounds: ["花青素", "鞣花酸", "覆盆子酮", "鞣花单宁"],
+    tracks: ["抗氧化", "女性健康", "功能食品"], trl: 7, innovScore: 74, marketScore: 93,
+    systemPrompt: "你是冷域覆盆子（Rubus idaeus）商业化专家，专精全球三轨认证（FDA GRAS+EU Novel Food+中国蓝帽），花青素提取纯化工艺，溯源品牌价值链，以及花青素+鞣花酸女性健康功能食品开发。掌握CBEC跨境电商快速进入，花青素微胶囊、覆盆子酮精华高价值加工路径。请用中文回答，重点提供商业化落地方案。",
+    quickQ: ["FDA GRAS申请自我认定程序","花青素微胶囊化工艺优化","EU Novel Food申请时间线","覆盆子酮精华功效声称策略","中国蓝帽抗氧化产品注册路径","CBEC跨境电商品牌定位方案"],
+    innovations: [
+      { title: "全球三轨认证体系", desc: "FDA GRAS+EU Novel Food+蓝帽同步推进", score: 88 },
+      { title: "花青素微胶囊原料", desc: "稳定化技术专利+B2B原料供应", score: 82 },
+      { title: "冷域溯源女性健康品牌", desc: "花青素+鞣花酸，美容+抗氧化叙事", score: 86 },
+      { title: "覆盆子酮功能性食品", desc: "体重管理市场，新兴功能声称", score: 71 },
+    ],
+  },
+};
+
+const TRACKS = [
+  { id: "anticancer", label: "抗肿瘤", en: "ONCOLOGY", icon: "⚗", color: "#b45309", accent: "#fbbf24",
+    desc: "先导化合物 · 衍生物库 · IND申报 · 原料药CDMO", members: ["sinopodophyllum", "helleborus"] },
+  { id: "skin", label: "皮肤修复 & 美白", en: "DERM / COSMECEUTICAL", icon: "✦", color: "#be185d", accent: "#fb7185",
+    desc: "透皮制剂 · Franz Cell · 化妆品备案 · 美白原料B2B", members: ["achillea", "bergenia"] },
+  { id: "eye", label: "眼部护理", en: "OPHTHALMIC", icon: "◎", color: "#0f766e", accent: "#2dd4bf",
+    desc: "无菌滴眼液 · 医疗器械 · Aucubin协同抗炎", members: ["euphrasia"] },
+  { id: "nutraceutical", label: "功能食品 & 植物原料", en: "NUTRACEUTICAL", icon: "◆", color: "#166534", accent: "#4ade80",
+    desc: "蓝帽注册 · Q-marker · 冷域溯源 · 全球三轨认证", members: ["urtica", "rubus"] },
+];
+
+// ── Score Ring ──────────────────────────────────────────────────
+function ScoreRing({ value, size = 44, color, label }) {
+  const r = (size - 6) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (value / 100) * circ;
+  return (
+    <div style={{ textAlign: "center" }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={3}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"/>
+        <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="middle"
+          style={{ transform: `rotate(90deg)`, transformOrigin: `${size/2}px ${size/2}px`,
+            fontSize: 10, fill: color, fontFamily: "monospace", fontWeight: 700 }}>{value}</text>
+      </svg>
+      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace", marginTop: 1 }}>{label}</div>
+    </div>
+  );
+}
+
+// ── TRL Dots ────────────────────────────────────────────────────
+function TRLDots({ level, color }) {
+  return (
+    <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+      {Array.from({ length: 9 }, (_, i) => (
+        <div key={i} style={{
+          width: i < level ? 7 : 5, height: i < level ? 7 : 5, borderRadius: "50%",
+          background: i < level ? color : "rgba(255,255,255,0.08)",
+          boxShadow: i < level ? `0 0 5px ${color}55` : "none", transition: "all 0.3s",
+        }}/>
+      ))}
+      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace", marginLeft: 3 }}>TRL {level}</span>
+    </div>
+  );
+}
+
+// ── Compact Row Card ─────────────────────────────────────────────
+function CompactCard({ sp, onSelect }) {
+  const [hov, setHov] = React.useState(false);
+  const tierColor = { "旗舰": "#f59e0b", "战略": "#a78bfa", "快变": "#34d399" };
+  return (
+    <div onClick={() => onSelect(sp)}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        display: "grid", gridTemplateColumns: "40px 1fr auto auto auto",
+        alignItems: "center", gap: 14, padding: "12px 18px", borderRadius: 8, cursor: "pointer",
+        border: `1px solid ${hov ? sp.color+"66" : "rgba(255,255,255,0.06)"}`,
+        background: hov ? `${sp.color}0e` : "rgba(255,255,255,0.015)",
+        transition: "all 0.22s", transform: hov ? "translateX(3px)" : "none",
+      }}>
+      <div style={{ width: 38, height: 38, borderRadius: 7, background: `${sp.color}20`,
+        border: `1px solid ${sp.color}44`, display: "flex", alignItems: "center",
+        justifyContent: "center", fontSize: 16, color: sp.accent }}>{sp.glyph}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14, color: "#e8eaf0", fontWeight: 500 }}>{sp.chinese}</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontStyle: "italic", fontFamily: "monospace" }}>{sp.latin}</span>
+          <span style={{ padding: "1px 6px", borderRadius: 3, fontSize: 9, fontFamily: "monospace",
+            background: `${tierColor[sp.tier]}20`, color: tierColor[sp.tier],
+            border: `1px solid ${tierColor[sp.tier]}44` }}>{sp.tier}</span>
+        </div>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+          {sp.keyCompounds.slice(0, 4).map(c => (
+            <span key={c} style={{ padding: "1px 6px", borderRadius: 3, fontSize: 9,
+              background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.38)",
+              border: "1px solid rgba(255,255,255,0.08)" }}>{c}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{ textAlign: "center", minWidth: 46 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: sp.accent, fontFamily: "monospace" }}>
+          {sp.trl}<span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>/9</span></div>
+        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>TRL</div>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <ScoreRing value={sp.innovScore} size={40} color={sp.accent} label="创新"/>
+        <ScoreRing value={sp.marketScore} size={40} color={sp.color} label="市场"/>
+      </div>
+      <div style={{ fontSize: 15, color: hov ? sp.accent : "rgba(255,255,255,0.15)",
+        transition: "all 0.2s", transform: hov ? "translateX(3px)" : "none", fontFamily: "monospace" }}>→</div>
+    </div>
+  );
+}
+
+// ── Full Species Card (flat view) ───────────────────────────────
+function SpeciesCard({ sp, onSelect, index }) {
+  const [hov, setHov] = React.useState(false);
+  const tierColor = { "旗舰": "#f59e0b", "战略": "#a78bfa", "快变": "#34d399" };
+  return (
+    <div onClick={() => onSelect(sp)} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        padding: "20px 22px", borderRadius: 10, cursor: "pointer",
+        border: `1px solid ${hov ? sp.color+"55" : "rgba(255,255,255,0.07)"}`,
+        background: hov ? `${sp.color}0d` : "rgba(255,255,255,0.02)",
+        transition: "all 0.28s", transform: hov ? "translateY(-2px)" : "none",
+        boxShadow: hov ? `0 8px 28px ${sp.color}1a` : "none",
+        animation: `fadeIn 0.45s ${index * 0.07}s both`,
+      }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 8, background: `${sp.color}20`,
+            border: `1px solid ${sp.color}44`, display: "flex", alignItems: "center",
+            justifyContent: "center", fontSize: 16, color: sp.accent }}>{sp.glyph}</div>
+          <div>
+            <div style={{ fontSize: 15, color: "#e8eaf0", fontWeight: 500, marginBottom: 2 }}>{sp.chinese}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontStyle: "italic", fontFamily: "monospace" }}>{sp.latin}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+          <span style={{ padding: "2px 8px", borderRadius: 3, fontSize: 9, fontFamily: "monospace",
+            background: `${tierColor[sp.tier]}20`, color: tierColor[sp.tier],
+            border: `1px solid ${tierColor[sp.tier]}44` }}>{sp.tier}</span>
+          <span style={{ padding: "2px 8px", borderRadius: 10, fontSize: 9,
+            background: `${sp.color}20`, color: sp.accent, border: `1px solid ${sp.color}33` }}>{sp.tag}</span>
+        </div>
+      </div>
+      <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(232,234,240,0.55)", lineHeight: 1.65 }}>{sp.summary}</p>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
+        {sp.keyCompounds.map(c => (
+          <span key={c} style={{ padding: "2px 7px", borderRadius: 3, fontSize: 10,
+            background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.4)",
+            border: "1px solid rgba(255,255,255,0.09)" }}>{c}</span>
+        ))}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <TRLDots level={sp.trl} color={sp.accent}/>
+        <div style={{ display: "flex", gap: 10 }}>
+          <ScoreRing value={sp.innovScore} size={42} color={sp.accent} label="创新"/>
+          <ScoreRing value={sp.marketScore} size={42} color={sp.color} label="市场"/>
+        </div>
+      </div>
+      <div style={{ paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)",
+        display: "flex", justifyContent: "flex-end" }}>
+        <span style={{ fontSize: 11, color: sp.accent, fontFamily: "monospace",
+          opacity: hov ? 1 : 0.4, transition: "opacity 0.2s" }}>进入分析引擎 →</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Track Group ─────────────────────────────────────────────────
+function TrackGroup({ track, onSelect, search, isExpanded, onToggle, idx }) {
+  const members = track.members.map(id => SPECIES_DB[id]).filter(sp => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return sp.chinese.includes(q) || sp.latin.toLowerCase().includes(q) || sp.alias.toLowerCase().includes(q);
+  });
+  if (members.length === 0) return null;
+  return (
+    <div style={{
+      borderRadius: 10, overflow: "hidden",
+      border: `1px solid ${isExpanded ? track.color+"44" : "rgba(255,255,255,0.07)"}`,
+      background: isExpanded ? `${track.color}06` : "rgba(255,255,255,0.015)",
+      transition: "all 0.25s", animation: `fadeIn 0.4s ${idx * 0.1}s both`,
+    }}>
+      <div onClick={onToggle} style={{ padding: "14px 22px", display: "flex", alignItems: "center",
+        gap: 14, cursor: "pointer",
+        borderBottom: isExpanded ? `1px solid ${track.color}22` : "none" }}>
+        <div style={{ width: 36, height: 36, borderRadius: 7, background: `${track.color}22`,
+          border: `1px solid ${track.color}44`, display: "flex", alignItems: "center",
+          justifyContent: "center", fontSize: 17, color: track.accent }}>{track.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: track.accent, letterSpacing: 1 }}>{track.label}</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.22)", fontFamily: "monospace", letterSpacing: 2 }}>{track.en}</span>
+          </div>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.32)" }}>{track.desc}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", gap: 4 }}>
+            {members.map(sp => (
+              <div key={sp.id} style={{ width: 22, height: 22, borderRadius: 5, background: `${sp.color}22`,
+                border: `1px solid ${sp.color}44`, display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: 11, color: sp.accent }}>{sp.glyph}</div>
+            ))}
+          </div>
+          <span style={{ padding: "2px 7px", borderRadius: 10, fontSize: 9, fontFamily: "monospace",
+            background: `${track.color}22`, color: track.accent, border: `1px solid ${track.color}44` }}>{members.length}种</span>
+          <span style={{ fontSize: 14, color: isExpanded ? track.accent : "rgba(255,255,255,0.2)",
+            transition: "transform 0.2s", display: "inline-block",
+            transform: isExpanded ? "rotate(90deg)" : "none" }}>›</span>
+        </div>
+      </div>
+      {isExpanded && (
+        <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 7 }}>
+          {members.map(sp => <CompactCard key={sp.id} sp={sp} onSelect={onSelect}/>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Species Hub ─────────────────────────────────────────────────
+function SpeciesHub({ onSelect }) {
+  const [search, setSearch] = React.useState("");
+  const [viewMode, setViewMode] = React.useState("grouped");
+  const [expanded, setExpanded] = React.useState({ anticancer: true, skin: true, eye: true, nutraceutical: true });
+  const toggle = id => setExpanded(p => ({ ...p, [id]: !p[id] }));
+  const allSpecies = Object.values(SPECIES_DB).filter(sp => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return sp.chinese.includes(q) || sp.latin.toLowerCase().includes(q) || sp.alias.toLowerCase().includes(q);
+  });
+  return (
+    <div style={{ flex: 1, overflowY: "auto", padding: "22px 28px" }}>
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 20 }}>
+        {[
+          { label: "收录物种", value: Object.keys(SPECIES_DB).length+"种", color: "#e8eaf0" },
+          { label: "活性成分", value: "30+个", color: "#a78bfa" },
+          { label: "研发赛道", value: TRACKS.length+"条", color: "#fbbf24" },
+          { label: "监管路径", value: "10轨", color: "#34d399" },
+        ].map((s, i) => (
+          <div key={i} style={{ padding: "11px 14px", borderRadius: 7, textAlign: "center",
+            background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: s.color, fontFamily: "monospace" }}>{s.value}</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "monospace", marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      {/* Toolbar */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: "1 1 200px" }}>
+          <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+            fontSize: 12, color: "rgba(255,255,255,0.2)" }}>⌕</span>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="搜索植物名、学名、成分…"
+            style={{ width: "100%", padding: "7px 12px 7px 28px", boxSizing: "border-box",
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 6, color: "#e8eaf0", fontSize: 12, outline: "none",
+              fontFamily: "Georgia, serif" }}/>
+        </div>
+        <div style={{ display: "flex", borderRadius: 5, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+          {[["grouped","赛道分组"],["all","全部平铺"]].map(([v,l]) => (
+            <button key={v} onClick={() => setViewMode(v)} style={{
+              padding: "6px 13px", fontSize: 11, cursor: "pointer", fontFamily: "monospace", border: "none",
+              background: viewMode === v ? "rgba(255,255,255,0.1)" : "transparent",
+              color: viewMode === v ? "#e8eaf0" : "rgba(255,255,255,0.3)",
+            }}>{l}</button>
+          ))}
+        </div>
+        {viewMode === "grouped" && (
+          <div style={{ display: "flex", gap: 5 }}>
+            <button onClick={() => setExpanded(Object.fromEntries(TRACKS.map(t=>[t.id,true])))}
+              style={{ padding: "5px 10px", borderRadius: 4, fontSize: 10, cursor: "pointer",
+                background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>全展开</button>
+            <button onClick={() => setExpanded(Object.fromEntries(TRACKS.map(t=>[t.id,false])))}
+              style={{ padding: "5px 10px", borderRadius: 4, fontSize: 10, cursor: "pointer",
+                background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>全折叠</button>
+          </div>
+        )}
+        <div style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "monospace" }}>
+          {allSpecies.length}/{Object.keys(SPECIES_DB).length} 物种
+        </div>
+      </div>
+      {/* Content */}
+      {viewMode === "grouped" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {TRACKS.map((track, i) => (
+            <TrackGroup key={track.id} track={track} onSelect={onSelect} search={search}
+              isExpanded={!!expanded[track.id]} onToggle={() => toggle(track.id)} idx={i}/>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 13 }}>
+          {allSpecies.map((sp, i) => <SpeciesCard key={sp.id} sp={sp} onSelect={onSelect} index={i}/>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Plant Engine ────────────────────────────────────────────────
+function PlantEngine({ sp, onBack }) {
+  const [tab, setTab] = React.useState("chat");
+  const [msgs, setMsgs] = React.useState([]);
+  const [input, setInput] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [expandedInnov, setExpandedInnov] = React.useState(null);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current && endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+
+  const callAI = async (text) => {
+    if (!text.trim() || loading) return;
+    setLoading(true);
+    const newMsgs = [...msgs, { role: "user", content: text }];
+    setMsgs(newMsgs); setInput(""); setTab("chat");
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000,
+          system: sp.systemPrompt, messages: newMsgs }),
+      });
+      const data = await res.json();
+      const reply = (data.content && data.content.find(b => b.type === "text") || {}).text || "无法获取回复";
+      setMsgs([...newMsgs, { role: "assistant", content: reply }]);
+    } catch(e) { setMsgs([...newMsgs, { role: "assistant", content: "⚠️ API调用失败" }]); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", animation: "fadeIn 0.3s both" }}>
+      {/* Engine header */}
+      <div style={{ padding: "13px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: `linear-gradient(135deg, ${sp.color}18, transparent)`,
+        display: "flex", alignItems: "center", gap: 13 }}>
+        <button onClick={onBack} style={{ width: 30, height: 30, borderRadius: "50%",
+          border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)",
+          color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 14,
+          display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
+        <div style={{ width: 34, height: 34, borderRadius: 7, background: `${sp.color}22`,
+          border: `1px solid ${sp.color}44`, display: "flex", alignItems: "center",
+          justifyContent: "center", fontSize: 15, color: sp.accent }}>{sp.glyph}</div>
+        <div>
+          <div style={{ fontSize: 14, color: sp.accent, fontWeight: 500, letterSpacing: 1 }}>
+            {sp.chinese} · 研发分析引擎</div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontStyle: "italic", fontFamily: "monospace" }}>
+            {sp.latin} · {sp.alias}</div>
+        </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 5 }}>
+          {[["chat","AI顾问"],["innovations","创新方向"],["quickq","快捷问题"]].map(([id,label]) => (
+            <button key={id} onClick={() => setTab(id)} style={{
+              padding: "5px 12px", borderRadius: 4, fontSize: 11, cursor: "pointer", fontFamily: "monospace",
+              border: `1px solid ${tab === id ? sp.color+"88" : "rgba(255,255,255,0.08)"}`,
+              background: tab === id ? `${sp.color}22` : "transparent",
+              color: tab === id ? sp.accent : "rgba(255,255,255,0.3)", transition: "all 0.2s",
+            }}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat */}
+      {tab === "chat" && (<>
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+          {msgs.length === 0 && (
+            <div style={{ textAlign: "center", paddingTop: 48, opacity: 0.5 }}>
+              <div style={{ fontSize: 32, marginBottom: 10, color: sp.accent }}>{sp.glyph}</div>
+              <p style={{ color: sp.accent, fontSize: 13, letterSpacing: 2 }}>{sp.chinese}专项AI顾问已就位</p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 5 }}>切换「快捷问题」选择预设查询，或直接输入</p>
+            </div>
+          )}
+          {msgs.map((m, i) => (
+            <div key={i} style={{ marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start",
+              flexDirection: m.role === "user" ? "row-reverse" : "row" }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: m.role === "user" ? `${sp.color}22` : "rgba(255,255,255,0.05)",
+                border: `1px solid ${m.role === "user" ? sp.color+"44" : "rgba(255,255,255,0.08)"}`,
+                fontSize: 9, color: m.role === "user" ? sp.accent : "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>
+                {m.role === "user" ? "You" : sp.glyph}</div>
+              <div style={{ maxWidth: "80%", padding: "10px 14px",
+                borderRadius: m.role === "user" ? "10px 3px 10px 10px" : "3px 10px 10px 10px",
+                background: m.role === "user" ? `${sp.color}18` : "rgba(255,255,255,0.03)",
+                border: `1px solid ${m.role === "user" ? sp.color+"33" : "rgba(255,255,255,0.06)"}`,
+                fontSize: 12, lineHeight: 1.85, whiteSpace: "pre-wrap", color: "rgba(232,234,240,0.85)" }}>
+                {m.content}</div>
+            </div>
+          ))}
+          {loading && (
+            <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center",
+                justifyContent: "center", background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)", fontSize: 9, color: sp.accent }}>{sp.glyph}</div>
+              <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)", borderRadius: "3px 10px 10px 10px", display: "flex", gap: 5 }}>
+                {[0,1,2].map(j => <div key={j} style={{ width: 6, height: 6, borderRadius: "50%",
+                  background: sp.accent, animation: `dot 1.2s ${j*0.2}s infinite` }}/>)}
+              </div>
+            </div>
+          )}
+          <div ref={endRef}/>
+        </div>
+        <div style={{ padding: "13px 24px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", gap: 9 }}>
+          <textarea value={input} onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); callAI(input); }}}
+            placeholder={`询问关于 ${sp.chinese} 的研发、配方、监管、商业化问题…`}
+            style={{ flex: 1, padding: "9px 13px", height: 42, resize: "none", outline: "none",
+              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 6, color: "#e8eaf0", fontSize: 12, fontFamily: "Georgia, serif" }}/>
+          <button onClick={() => callAI(input)} disabled={loading || !input.trim()} style={{
+            padding: "0 16px", borderRadius: 6, cursor: "pointer",
+            background: loading || !input.trim() ? "rgba(255,255,255,0.04)" : `${sp.color}33`,
+            border: `1px solid ${loading || !input.trim() ? "rgba(255,255,255,0.08)" : sp.color+"66"}`,
+            color: loading || !input.trim() ? "rgba(255,255,255,0.2)" : sp.accent,
+            fontSize: 11, fontFamily: "monospace", whiteSpace: "nowrap" }}>发送 →</button>
+        </div>
+      </>)}
+
+      {/* Innovations */}
+      {tab === "innovations" && (
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontFamily: "monospace", letterSpacing: 2, margin: "0 0 16px" }}>
+            INNOVATION OPPORTUNITIES · {sp.chinese}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {sp.innovations.map((inn, i) => (
+              <div key={i} onClick={() => setExpandedInnov(expandedInnov === i ? null : i)}
+                style={{ padding: "14px 18px", borderRadius: 8, cursor: "pointer",
+                  border: `1px solid ${expandedInnov === i ? sp.color+"55" : "rgba(255,255,255,0.07)"}`,
+                  background: expandedInnov === i ? `${sp.color}0d` : "rgba(255,255,255,0.02)", transition: "all 0.2s" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, color: "#e8eaf0", marginBottom: 4 }}>{inn.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(232,234,240,0.48)", lineHeight: 1.6 }}>{inn.desc}</div>
+                  </div>
+                  <div style={{ textAlign: "center", marginLeft: 14, flexShrink: 0 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: sp.accent, fontFamily: "monospace" }}>{inn.score}</div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", fontFamily: "monospace" }}>综合评分</div>
+                  </div>
+                </div>
+                {expandedInnov === i && (
+                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <button onClick={e => { e.stopPropagation(); callAI(`请为「${inn.title}」制定详细落地方案：1.技术路线 2.专利策略 3.监管路径 4.商业化时间线`); }}
+                      style={{ padding: "5px 14px", borderRadius: 4, background: `${sp.color}22`,
+                        border: `1px solid ${sp.color}55`, color: sp.accent, cursor: "pointer",
+                        fontSize: 10, fontFamily: "monospace" }}>AI制定完整落地方案 →</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Q */}
+      {tab === "quickq" && (
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontFamily: "monospace", letterSpacing: 2, margin: "0 0 16px" }}>
+            QUICK QUERIES · 点击直接发送</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            {sp.quickQ.map((q, i) => (
+              <button key={i} onClick={() => callAI(q)}
+                style={{ padding: "12px 16px", borderRadius: 7, textAlign: "left",
+                  background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
+                  color: "rgba(232,234,240,0.65)", cursor: "pointer", fontSize: 12,
+                  fontFamily: "Georgia, serif", lineHeight: 1.5, transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = sp.color+"55"; e.currentTarget.style.background = `${sp.color}0d`; e.currentTarget.style.color = "#e8eaf0"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; e.currentTarget.style.color = "rgba(232,234,240,0.65)"; }}>
+                <span style={{ color: sp.accent, marginRight: 8, fontSize: 11 }}>→</span>{q}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Root App ─────────────────────────────────────────────────────
+function App() {
+  const [activePlant, setActivePlant] = React.useState(null);
+  return (
+    <div style={{ minHeight: "100vh", background: "#07090d",
+      fontFamily: "Georgia, 'Times New Roman', Palatino, serif", color: "#e8eaf0",
+      display: "flex", flexDirection: "column",
+      backgroundImage: `radial-gradient(ellipse at 10% 0%, rgba(30,60,120,0.14) 0%, transparent 45%),
+        radial-gradient(ellipse at 90% 100%, rgba(15,40,25,0.18) 0%, transparent 45%)` }}>
+      {/* Header */}
+      <header style={{ padding: "12px 28px", borderBottom: "1px solid rgba(255,255,255,0.05)",
+        display: "flex", alignItems: "center", gap: 14,
+        background: "rgba(7,9,13,0.92)", backdropFilter: "blur(16px)",
+        position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+          onClick={() => setActivePlant(null)}>
+          <div style={{ width: 30, height: 30, borderRadius: 7,
+            background: "linear-gradient(135deg, rgba(100,200,120,0.18), rgba(60,120,180,0.18))",
+            border: "1px solid rgba(255,255,255,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>⬡</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "#c8d8e8", letterSpacing: 2 }}>冷域本草 · 研发智库</div>
+            <div style={{ fontSize: 9, color: "rgba(200,216,232,0.3)", letterSpacing: 4, fontFamily: "monospace" }}>
+              COLD-DOMAIN BOTANICS · R&amp;D INTELLIGENCE</div>
+          </div>
+        </div>
+        {activePlant && (
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginLeft: 6 }}>
+            <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 12 }}>/</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", cursor: "pointer", fontFamily: "monospace" }}
+              onClick={() => setActivePlant(null)}>物种数据库</span>
+            <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 12 }}>/</span>
+            <span style={{ fontSize: 11, color: activePlant.accent, fontFamily: "monospace" }}>
+              {activePlant.chinese}</span>
+          </div>
+        )}
+        {activePlant && (
+          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+            {Object.values(SPECIES_DB).map(sp => (
+              <button key={sp.id} onClick={() => setActivePlant(sp)} title={sp.chinese} style={{
+                width: 26, height: 26, borderRadius: 5, cursor: "pointer", fontSize: 11,
+                display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s",
+                border: `1px solid ${activePlant.id === sp.id ? sp.color+"88" : "rgba(255,255,255,0.07)"}`,
+                background: activePlant.id === sp.id ? `${sp.color}22` : "rgba(255,255,255,0.03)",
+                color: activePlant.id === sp.id ? sp.accent : "rgba(255,255,255,0.28)",
+              }}>{sp.glyph}</button>
+            ))}
+          </div>
+        )}
+        {!activePlant && (
+          <div style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.18)", fontFamily: "monospace" }}>
+            点击物种卡片进入专项分析引擎</div>
+        )}
+      </header>
+      {/* Body */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {!activePlant
+          ? <SpeciesHub onSelect={setActivePlant}/>
+          : <PlantEngine sp={activePlant} onBack={() => setActivePlant(null)}/>}
+      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+        @keyframes dot { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.1)} }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(7,9,13,.8); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        input:focus, textarea:focus { border-color: rgba(255,255,255,0.22) !important; }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.18); }
+        button { outline: none; }
+      `}</style>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
