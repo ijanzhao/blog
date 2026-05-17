@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>冷域本草 · 研发智库</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { background: #07090d; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ═══════════════════════════════════════════════════════════════
+// MASTER SPECIES DATABASE
+// ═══════════════════════════════════════════════════════════════
+const SPECIES_DB = {
+  helleborus: {
+    id: "helleborus", latin: "Helleborus thibetanus", chinese: "铁筷子",
+    alias: "冷域铁筷子 / HTF-1心苷", color: "#7c3aed", accent: "#a78bfa", glyph: "◈",
+    tag: "抗肿瘤先导", tier: "旗舰",
+    summary: "冷域野生植物，含HTF-1心苷，Na⁺/K⁺-ATPase靶点，抗肿瘤活性显著",
+    keyCompounds: ["HTF-1心苷", "HFPS多糖", "β-谷甾醇"],
+    tracks: ["抗肿瘤", "心血管", "免疫调节"], trl: 4, innovScore: 94, marketScore: 88,
+    systemPrompt: "你是铁筷子（Helleborus thibetanus）天然产物研发专家，专精HTF-1心苷的Na⁺/K⁺-ATPase抑制机制、MAPK通路调控、纳米药物递送设计（LNP+pH响应前药）和NMPA/IND申报策略。请用中文回答，专业术语附英文，分层次输出。",
+    quickQ: ["HTF-1心苷的Na⁺/K⁺-ATPase抑制机制","HTF-1纳米递送系统设计方案","HFPS多糖免疫活性研究路径","IND申报材料准备清单","铁筷子与洋地黄苷类的结构差异","NMPA孤儿药资格申请策略"],
+    innovations: [
+      { title: "HTF-1衍生物库", desc: "C3/C17位修饰→选择性Na⁺/K⁺-ATPase抑制剂", score: 94 },
+      { title: "pH响应LNP纳米递送", desc: "肿瘤微环境靶向释放，降低心脏毒性", score: 91 },
+      { title: "HFPS蓝帽保健品", desc: "多糖免疫调节功能食品，快速变现", score: 72 },
+      { title: "冷域GAP栽培基地", desc: "资源可持续供应链，CDMO原料药", score: 85 },
+    ],
+  },
+  sinopodophyllum: {
+    id: "sinopodophyllum", latin: "Sinopodophyllum hexandrum", chinese: "桃儿七",
+    alias: "鬼臼 / 小叶莲 / Himalayan Mayapple", color: "#b45309", accent: "#fbbf24", glyph: "⚗",
+    tag: "PPT原料药", tier: "旗舰",
+    summary: "含鬼臼毒素（podophyllotoxin），依托泊苷全球唯一天然原料来源，抗肿瘤衍生物开发与CDMO双轨",
+    keyCompounds: ["鬼臼毒素", "α/β-盾叶鬼臼素", "去氧鬼臼毒素", "山奈酚", "槲皮素"],
+    tracks: ["抗肿瘤衍生物", "原料药CDMO", "局部给药"], trl: 6, innovScore: 95, marketScore: 92,
+    systemPrompt: "你是桃儿七（Sinopodophyllum hexandrum）天然产物研发战略专家。核心成分：鬼臼毒素(podophyllotoxin,PPT)、α/β-盾叶鬼臼素(peltatin)、去氧鬼臼毒素、山奈酚、槲皮素。药理：抗白血病L1210、淋巴肉瘤、乳腺癌C3HBA、黑色素瘤S-91；毒性：LD50<10mg/kg，中毒症状呕吐/运动失调/昏迷；用量1.5-6g/日。五大平台：PPT衍生物库(化药1类IND)、天然PPT原料药CDMO(GAP+GMP)、改良局部制剂(2.2类)、全谱提取物蓝帽、α/β-Peltatin立体化学研究。请用中文回答，提供可落地技术路线和监管策略。",
+    quickQ: ["鬼臼毒素C4β位点衍生物库设计方案","α-peltatin与β-peltatin构效关系差异","天然PPT原料药CDMO启动资金和资源","PPT微针贴片技术可行性分析","全谱提取物蓝帽木脂素安全阈值","GAP桃儿七栽培基地选址与规模测算"],
+    innovations: [
+      { title: "PPT衍生物候选药库", desc: "C4β/C1/C2系统修饰→克服MDR耐药，IND申报", score: 95 },
+      { title: "天然PPT原料药CDMO", desc: "全球依托泊苷唯一天然来源，GAP+GMP双认证", score: 91 },
+      { title: "改良型PPT局部制剂", desc: "纳米乳凝胶/微针贴片→2.2类改良新药，皮肤科", score: 84 },
+      { title: "全谱提取物功能食品", desc: "黄酮为核心活性，蓝帽抗氧化/免疫调节快速变现", score: 76 },
+    ],
+  },
+  achillea: {
+    id: "achillea", latin: "Achillea millefolium", chinese: "欧蓍草",
+    alias: "西洋蓍草 / Yarrow", color: "#0369a1", accent: "#38bdf8", glyph: "⬡",
+    tag: "创伤修复", tier: "战略",
+    summary: "创伤修复草本，含Achillin、芹菜素，Franz Cell透皮数据优异，九SKU三层产品体系",
+    keyCompounds: ["Achillin", "芹菜素", "母菊薁", "α-侧柏酮"],
+    tracks: ["皮肤修复", "静脉舒适", "抗炎"], trl: 6, innovScore: 87, marketScore: 91,
+    systemPrompt: "你是欧蓍草（Achillea millefolium）配方研发专家，专精F-01创伤修复凝胶、F-02/F-03静脉舒适凝胶配方优化，Franz Cell透皮渗透SOP设计，NMPA化妆品备案和EMA THR传统草药注册策略。核心：Achillin抗炎机制、芹菜素透皮参数、九SKU三层体系。请用中文回答，提供可操作技术细节。",
+    quickQ: ["F-01创伤修复凝胶最优配方组合","Franz Cell透皮SOP关键参数","欧盟EMA THR传统草药申请路径","Achillin与芹菜素协同抗炎机制","亚洲市场CBEC快速进入策略","九SKU三层产品体系定价策略"],
+    innovations: [
+      { title: "F-01创伤修复凝胶", desc: "Achillin+芹菜素双效配方，NMPA化妆品备案", score: 87 },
+      { title: "F-02静脉舒适系列", desc: "下肢静脉曲张辅助护理，医疗器械路径", score: 82 },
+      { title: "透皮递送系统专利", desc: "Q-marker组合物专利+Franz Cell验证数据", score: 79 },
+      { title: "EMA THR品牌出口", desc: "欧洲传统草药认证→溢价市场进入", score: 88 },
+    ],
+  },
+  bergenia: {
+    id: "bergenia", latin: "Bergenia crassifolia", chinese: "岩白菜",
+    alias: "厚叶岩白菜 / 冷域岩生草本", color: "#be185d", accent: "#fb7185", glyph: "❋",
+    tag: "Arbutin美白", tier: "战略",
+    summary: "高原岩生草本，熊果苷(Arbutin)美白原料核心来源，天然提取认证差异化对抗合成竞品",
+    keyCompounds: ["熊果苷(Arbutin)", "岩白菜素(Bergenin)", "没食子酸", "儿茶素"],
+    tracks: ["美白护肤", "抗炎镇咳", "肝脏保护"], trl: 5, innovScore: 82, marketScore: 85,
