@@ -2,14 +2,17 @@ name: Prevent Supabase Inactivity
 
 on:
   schedule:
-    - cron: '0 0 * * 1,4'
+    - cron: "0 */12 * * *"
+
   workflow_dispatch:
 
 jobs:
-  ping-supabase:
+  ping:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Ping Supabase Edge Function
+      - name: Ping Supabase API
         run: |
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/quick-handler" -H "apikey: ${{ secrets.SUPABASE_KEY }}" -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}")
-          echo "Supabase API responded with Status Code: $STATUS_CODE"
+          curl -L "${{ secrets.SUPABASE_URL }}/rest/v1/"
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
