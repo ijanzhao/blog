@@ -1,18 +1,22 @@
-# 🔬 WildPhytoDB
+# IJAN Research Blog
 
-这是一个基于 Supabase 构建的野生植物代谢物科研平台。
+植物天然产物研究与冷域野生植物次生代谢物数据库原型。
 
-### 📁 文件说明
-- `index.html`: 前端主界面，包含搜索和统计展示。
-- `app.js`: 核心逻辑，负责与 Supabase 进行数据交互。
-- `detail.htm`: 化合物详细信息页面。
+## 站点结构
 
-### ⚙️ 数据库配置
-1. 项目 URL: `https://jgcibolwmwotsymhgtjr.supabase.co`
-2. 表结构要求:
-   - `species`: 存储物种信息。
-   - `metabolites`: 存储代谢物，需包含 `type` 字段。
-   - `v_compound_full`: 用于详情页展示的视图或表。
+- `index.md`: GitHub Pages 首页，介绍项目定位并引导访问数据库。
+- `database.html`: 单页交互式研发智库，内置物种、产品方案、工艺流程和市场信息。
+- `_posts/`: Jekyll 博客文章。
+- `_config.yml`: Jekyll / GitHub Pages 配置。
+- `CNAME`: 自定义域名配置，当前为 `ijan.app`。
 
-### ⚠️ 注意事项
-如果出现 `401` 或 `403` 错误，请检查 Supabase 后台的 **Authentication -> Policies**，确保为匿名用户（anon）开启了读取（SELECT）权限。
+## 当前重点
+
+- 冷域野生植物次生代谢物数据库
+- 多组学整合、生物信息学挖掘和研发路线整理
+- 产品方案、工艺流程、注册路径和市场转化评估
+- AI 顾问功能预留，生产环境应通过后端代理调用模型 API
+
+## 内容声明
+
+本站内容用于科研信息整理、产品早期评估和研发路线讨论，不构成医疗建议、药品注册结论或投资建议。涉及药理、毒理、法规和市场数据时，应以实验数据、注册法规和正式尽调为准。
