@@ -1,0 +1,13 @@
+{
+  "name": "ijan-blog",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.2.0",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
