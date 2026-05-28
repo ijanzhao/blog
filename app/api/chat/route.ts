@@ -4,18 +4,27 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const { system, messages, max_tokens } = await req.json();
+    const dsMessages = system
+      ? [{ role: "system", content: system }, ...messages]
+      : messages;
+    const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY || "",
-        "anthropic-version": "2023-06-01"
+        "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: dsMessages,
+        max_tokens: max_tokens || 1000
+      })
     });
     const data = await res.json();
-    return NextResponse.json(data);
+    const text = data.choices?.[0]?.message?.content || "无法获取回复";
+    return NextResponse.json({
+      content: [{ type: "text", text }]
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
