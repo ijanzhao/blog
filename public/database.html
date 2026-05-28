@@ -574,7 +574,7 @@ async function askAI(text){
   const newMsgs=[...state.msgs,{role:"user",content:text}];
   setState({msgs:newMsgs,loading:true,tab:"chat"});
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
+    const res=await fetch("https://await fetch("/api/chat",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
         system:sp.sysPrompt,messages:newMsgs})
