@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>冷域本草 · 研发智库</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#07090d;font-family:Georgia,'Times New Roman',serif;color:#e8eaf0}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#07090d}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+button{cursor:pointer;outline:none;font-family:inherit}
+input,textarea{outline:none;font-family:inherit}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+.fade-up{animation:fadeUp .35s both}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#header{padding:11px 22px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,9,13,.95);
+  backdrop-filter:blur(12px);display:flex;align-items:center;gap:10;flex-shrink:0;z-index:100;position:sticky;top:0}
+#logo{display:flex;align-items:center;gap:8;cursor:pointer}
+#logo-icon{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,rgba(100,200,120,.16),rgba(60,120,180,.16));
+  border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px}
+#logo-text-main{font-size:12px;font-weight:500;color:#c8d8e8;letter-spacing:2px}
+#logo-text-sub{font-size:7px;color:rgba(200,216,232,.25);letter-spacing:3px;font-family:monospace}
+#breadcrumb{display:flex;align-items:center;gap:5;margin-left:6px;font-size:9px;font-family:monospace}
+#breadcrumb span.sep{color:rgba(255,255,255,.15)}
+#breadcrumb span.home{color:rgba(255,255,255,.28);cursor:pointer}
+#quick-switch{margin-left:auto;display:flex;gap:3}
+.qs-btn{width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.03);font-size:9px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#hub{flex:1;overflow-y:auto;padding:18px 22px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat-card{padding:10px 12px;border-radius:7px;text-align:center;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06)}
+.stat-val{font-size:16px;font-weight:600;font-family:monospace}
+.stat-lbl{font-size:8px;color:rgba(255,255,255,.26);font-family:monospace;margin-top:2px}
+.toolbar{display:flex;gap:7px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1 1 170px}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(255,255,255,.18)}
+.search-input{width:100%;padding:6px 10px 6px 24px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#e8eaf0;font-size:11px}
+.view-toggle{display:flex;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.view-btn{padding:5px 11px;font-size:10px;border:none;background:transparent;color:rgba(255,255,255,.3);font-family:monospace}
+.view-btn.active{background:rgba(255,255,255,.1);color:#e8eaf0}
+.ctrl-btn{padding:4px 9px;border-radius:4px;font-size:9px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:rgba(255,255,255,.3);font-family:monospace}
+.hub-count{margin-left:auto;font-size:8px;color:rgba(255,255,255,.16);font-family:monospace}
+.track-group{border-radius:10px;overflow:hidden;margin-bottom:9px;transition:all .25s}
+.track-header{padding:12px 18px;display:flex;align-items:center;gap:11;cursor:pointer}
+.track-icon-box{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.track-label{font-size:13px;font-weight:500;letter-spacing:1px}
+.track-en{font-size:8px;color:rgba(255,255,255,.2);font-family:monospace;letter-spacing:2px;margin-left:6px}
+.track-desc{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+.track-badges{display:flex;align-items:center;gap:6px;margin-left:auto}
+.track-glyph-mini{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.track-count-badge{padding:1px 6px;border-radius:10px;font-size:8px;font-family:monospace}
+.track-arrow{font-size:12px;transition:transform .2s;display:inline-block}
+.track-body{padding:7px 11px;display:flex;flex-direction:column;gap:5px}
+.compact-card{display:grid;grid-template-columns:32px 1fr 40px 88px 14px;
+  align-items:center;gap:10px;padding:11px 14px;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.015);transition:all .2s}
+.compact-card:hover{transform:translateX(3px)}
+.sp-glyph-box{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.sp-name{font-size:13px;color:#e8eaf0;font-weight:500;margin-bottom:3px}
+.sp-latin{font-size:8px;color:rgba(255,255,255,.24);font-style:italic;font-family:monospace}
+.sp-tier-badge{padding:1px 5px;border-radius:3px;font-size:7px;font-family:monospace;margin-left:5px}
+.compound-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.ctag{padding:1px 5px;border-radius:3px;font-size:8px;background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.08)}
+.trl-num{font-size:13px;font-weight:600;font-family:monospace;text-align:center}
+.trl-lbl{font-size:7px;color:rgba(255,255,255,.25);font-family:monospace;text-align:center}
+.score-pair{display:flex;gap:6px}
+.score-box{text-align:center}
+.score-val{font-size:12px;font-weight:700;font-family:monospace}
+.score-lbl{font-size:7px;color:rgba(255,255,255,.25);font-family:monospace}
+.card-arrow{font-size:12px;color:rgba(255,255,255,.13);font-family:monospace;transition:all .2s}
+.compact-card:hover .card-arrow{transform:translateX(3px)}
+.flat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.flat-card{padding:16px;border-radius:9px;cursor:pointer;border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.02);transition:all .22s}
+.flat-card:hover{transform:translateY(-2px)}
+#engine{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.engine-header{padding:11px 20px;border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:11px;flex-shrink:0}
+.back-btn{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;
+  display:flex;align-items:center;justify-content:center}
+.engine-glyph{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.engine-name{font-size:13px;font-weight:500;letter-spacing:1px}
+.engine-latin{font-size:8px;color:rgba(255,255,255,.22);font-style:italic;font-family:monospace}
+.tab-bar{margin-left:auto;display:flex;gap:4px}
+.tab-btn{padding:4px 10px;border-radius:4px;font-size:10px;font-family:monospace;
+  border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.3);transition:all .2s}
+.tab-btn.active{color:#e8eaf0}
+#products-tab{flex:1;overflow-y:auto;padding:16px 20px}
+.products-header{font-size:9px;color:rgba(255,255,255,.24);font-family:monospace;letter-spacing:2px;margin-bottom:12px}
+.product-card{border-radius:10px;overflow:hidden;margin-bottom:10px;transition:all .25s;
+  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}
+.product-card.open{background:rgba(0,0,0,.2)}
+.product-header{padding:14px 17px;cursor:pointer;display:flex;align-items:flex-start;gap:11px}
+.product-glyph{width:32px;height:32px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px}
+.product-name{font-size:13px;color:#e8eaf0;font-weight:500;margin-bottom:4px}
+.product-meta{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+.product-meta span{font-size:9px;font-family:monospace}
+.product-desc{font-size:11px;color:rgba(232,234,240,.5);line-height:1.65}
+.product-tier{padding:1px 7px;border-radius:3px;font-size:8px;font-family:monospace}
+.product-arrow{font-size:12px;flex-shrink:0;margin-top:2px;transition:transform .2s;display:inline-block}
+.product-body{border-top:1px solid rgba(255,255,255,.06);padding:4px 17px 15px}
+.process-title{font-size:9px;color:rgba(255,255,255,.26);font-family:monospace;letter-spacing:2px;margin:13px 0 8px}
+.process-steps{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.step-btn{padding:5px 9px;border-radius:5px;font-size:10px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);color:rgba(232,234,240,.6);cursor:pointer;transition:all .18s;
+  margin-bottom:4px;display:flex;align-items:center;gap:3px}
+.step-btn.sel{color:#e8eaf0}
+.step-num{font-size:8px;font-family:monospace;min-width:11px}
+.step-arrow{color:rgba(255,255,255,.12);font-size:10px;margin:0 1px 4px}
+.step-detail{margin-top:8px;padding:9px 12px;border-radius:7px;font-size:11px;color:rgba(232,234,240,.82);
+  line-height:1.7;animation:fadeUp .2s both}
+.step-detail-label{font-family:monospace;font-size:8px;margin-right:7px}
+.market-grid{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.market-box{padding:10px 12px;border-radius:7px}
+.market-box-title{font-size:9px;font-family:monospace;letter-spacing:1px;margin-bottom:6px}
+.market-item{display:flex;gap:5px;margin-bottom:4px;align-items:flex-start;font-size:10px;color:rgba(232,234,240,.6);line-height:1.5}
+.market-dot{font-size:11px;flex-shrink:0}
+.moat-dot{font-size:8px;flex-shrink:0;margin-top:2px}
+.market-right{display:flex;flex-direction:column;gap:7px}
+.market-mini{padding:8px 12px;border-radius:7px}
+.market-mini-title{font-size:9px;font-family:monospace;letter-spacing:1px;margin-bottom:3px}
+.market-mini-text{font-size:10px;color:rgba(232,234,240,.6);line-height:1.5}
+.ai-cta{margin-top:11px;padding:7px 15px;border-radius:5px;width:100%;font-size:10px;font-family:monospace}
+#chat-tab{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px}
+.chat-empty{text-align:center;padding-top:42px;opacity:.46}
+.chat-empty-glyph{font-size:28px;margin-bottom:8px}
+.chat-empty-title{font-size:12px;letter-spacing:2px}
+.chat-empty-sub{font-size:9px;color:rgba(255,255,255,.23);margin-top:4px}
+.msg-row{margin-bottom:13px;display:flex;gap:8px;align-items:flex-start}
+.msg-row.user{flex-direction:row-reverse}
+.msg-avatar{width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:8px;font-family:monospace}
+.msg-bubble{max-width:82%;padding:9px 12px;font-size:12px;line-height:1.85;white-space:pre-wrap;color:rgba(232,234,240,.85)}
+.msg-bubble.user{border-radius:9px 3px 9px 9px}
+.msg-bubble.bot{border-radius:3px 9px 9px 9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.typing-dots{display:flex;gap:4px;align-items:center}
+.typing-dot{width:5px;height:5px;border-radius:50%}
+.chat-input-bar{padding:10px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;gap:7px;flex-shrink:0}
+.chat-input{flex:1;padding:7px 11px;height:38px;resize:none;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);
+  border-radius:6px;color:#e8eaf0;font-size:11px}
+.send-btn{padding:0 13px;border-radius:6px;font-size:10px;font-family:monospace;white-space:nowrap}
+#quickq-tab{flex:1;overflow-y:auto;padding:16px 20px}
+.qq-title{font-size:9px;color:rgba(255,255,255,.24);font-family:monospace;letter-spacing:2px;margin-bottom:12px}
+.qq-btn{padding:10px 14px;border-radius:7px;text-align:left;width:100%;margin-bottom:7px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);
+  color:rgba(232,234,240,.62);font-size:11px;line-height:1.5;transition:all .2s}
+.qq-arrow{font-size:9px;margin-right:7px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="logo" onclick="goHub()">
+      <div id="logo-icon">⬡</div>
+      <div>
+        <div id="logo-text-main">冷域本草 · 研发智库</div>
+        <div id="logo-text-sub">COLD-DOMAIN BOTANICS · R&D INTELLIGENCE · PRODUCT · PROCESS · MARKET</div>
+      </div>
+    </div>
+    <div id="breadcrumb" style="display:none"></div>
+    <div id="quick-switch" style="display:none"></div>
+    <div id="header-hint" style="margin-left:auto;font-size:8px;color:rgba(255,255,255,.15);font-family:monospace">
+      产品方案 · 工艺流程 · 市场投放 · AI顾问
+    </div>
+  </div>
+  <div id="main">
+    <div id="hub"></div>
+    <div id="engine" style="display:none"></div>
+  </div>
+</div>
+<script>
+const DB = {
+  sinopodophyllum:{
+    id:"sinopodophyllum",latin:"Sinopodophyllum hexandrum",chinese:"桃儿七",
+    alias:"鬼臼/小叶莲",color:"#b45309",accent:"#fbbf24",glyph:"⚗",
+    tag:"PPT原料药",tier:"旗舰",
+    summary:"含鬼臼毒素(PPT)，依托泊苷全球唯一天然来源，衍生物IND+CDMO双轨",
+    keyCompounds:["鬼臼毒素","α/β-盾叶鬼臼素","去氧鬼臼毒素","山奈酚"],
+    trl:6,innovScore:95,marketScore:92,
+    sysPrompt:`你是桃儿七（Sinopodophyllum hexandrum）全栈研发战略专家，覆盖：1.鬼臼毒素(PPT)原料药CDMO：GAP栽培(2800-4200m,PPT≥0.4%)、70%乙醇超声提取、硅胶柱层析（PE:EA梯度）、重结晶精制(≥98.5%)、DMF申报(FDA/EMA) 2.改良型PPT纳米乳凝胶(0.5%)：EL40 15%+丙二醇5%纳米乳制备(粒径50-120nm)、卡波姆940 0.8%基质、Franz Cell透皮验证(猪皮,PBS,12h≥300%对照)、2.2类改良新药申报 3.PPT衍生物IND管线：C4β位点化学修饰、MDR逆转筛选、拓扑异构酶II靶点确认 4.商业化：原料药¥8000-30000/kg、凝胶¥280-480/支、衍生物授权$50-500M。毒性警示：PPT LD50<10mg/kg。请提供具体工艺参数、质控指标和商业数字。`,
+    products:[
+      {id:"P1",tier:"旗舰",name:"天然鬼臼毒素原料药（PPT API）",category:"原料药/CDMO",readiness:"2-3年",revenue:"¥8000-30000/kg",
+       desc:"全球依托泊苷唯一天然前体，GAP+GMP认证，填补全球供应链缺口，半合成药企直供。",
+       process:[
+         {s:"GAP采收",d:"甘肃/西藏海拔2800-4200m，3-5年生根茎，秋季采挖，HPLC验证PPT含量≥0.4%，建立批次溯源档案"},
+         {s:"超声乙醇提取",d:"70%乙醇，料液比1:10，50°C超声45min，重复2次，合并提取液，减压浓缩"},
+         {s:"液液萃取",d:"氯仿/水体系3次萃取木脂素层，去除多糖/蛋白质杂质，氯仿层回收浓缩"},
+         {s:"硅胶柱层析",d:"石油醚:乙酸乙酯梯度洗脱（9:1→3:1→1:1），PPT洗脱于40-60%EA段，TLC实时跟踪"},
+         {s:"重结晶精制",d:"丙酮/水(4:1)重结晶3次，冷却过滤，HPLC纯度≥98.5%，符合EP/USP标准"},
+         {s:"质量全检",d:"HPLC定量、IR/NMR结构确认、比旋度、重金属<10ppm、农残欧盟MRL、溶剂残留ICH Q3C"},
+       ],
+       market:{channels:["国内半合成药企（恒瑞/绿叶/科伦）直供","欧美API进口商（DMF申报后）","国际抗癌药招标项目"],
+         pricing:"¥8000-30000/kg，纯度>99.5%溢价40%；依托泊苷半合成每克需PPT约2.3g",
+         timeline:"Y1建GAP基地→Y2 GMP认证→Y3 DMF申报(FDA/EMA)→Y3.5首批出货",
+         moat:["稀缺天然来源（vs全合成成本高10倍）","GAP+GMP双认证壁垒","碳中和/可持续采购认证溢价"]}},
+      {id:"P2",tier:"快变",name:"PPT纳米乳液凝胶（Nano-PPT 0.5%）",category:"2.2类改良新药/皮肤科",readiness:"2-3年",revenue:"¥280-480/支",
+       desc:"现有酊剂刺激强，纳米乳包裹PPT降低刺激性，透皮渗透≥3倍，改善患者依从性，申报2.2类改良新药。",
+       process:[
+         {s:"纳米乳制备",d:"PPT 0.5g + 蓖麻油聚氧乙烯酯(EL40)15g + 1,2-丙二醇5g，60°C水浴搅拌至澄清微乳"},
+         {s:"凝胶基质",d:"卡波姆940 0.5%水溶液充分溶胀12h，三乙醇胺调pH 6.5-7.0，形成透明凝胶"},
+         {s:"混合均质",d:"缓慢加入纳米乳液，恒速搅拌30min，DLS测粒径50-120nm，PDI<0.2，Zeta≤-30mV"},
+         {s:"Franz Cell透皮",d:"离体猪耳皮肤，PBS(pH7.4)接收液，12h累积渗透量≥对照酊剂300%，扩散系数计算"},
+         {s:"刺激性评估",d:"Draize皮肤刺激（兔，72h），Buehler豚鼠致敏，皮肤刺激积分≤1"},
+         {s:"稳定性研究",d:"40°C/75%RH加速6个月，PPT含量≥95%标示量，外观/pH/粒径无显著变化"},
+       ],
+       market:{channels:["皮肤科医院处方（主渠道）","性病科/妇科门诊","互联网医院处方配送"],
+         pricing:"零售¥280-480/支(5mL)，毛利65-72%；对比进口同类制剂具价格优势",
+         timeline:"Y1配方+Franz Cell SOP→Y2临床前安全→Y3 NDA申报",
+         moat:["纳米乳凝胶剂型专利（制备方法+组合物）","Franz Cell数据包","天然PPT来源认证"]}},
+      {id:"P3",tier:"探索",name:"PPT衍生物IND候选药库",category:"化药1类新药",readiness:"5-8年",revenue:"授权$50-500M",
+       desc:"系统C4β位点修饰，建立100+衍生物库，克服MDR多药耐药，筛选3-5个IND候选分子。",
+       process:[
+         {s:"结构多样性合成",d:"以天然PPT为母核，C4β-OH酯化/醚化/糖基化/氨基甲酸酯化，构建≥30个衍生物"},
+         {s:"体外初筛",d:"HeLa/A549/MCF-7/K562细胞MTT法，IC50<100nM为命中，耐药细胞K562/ADR逆转倍数>5"},
+         {s:"靶点确认",d:"拓扑异构酶II活性抑制实验，微管蛋白聚合抑制assay，FACS细胞周期分析"},
+         {s:"ADMET评估",d:"SwissADME+pkCSM计算，Lipinski五规则，BBB渗透Score，hERG毒性预测"},
+         {s:"先导化合物优化",d:"SAR总结，定向合成10-15个类似物，体内Xenograft小鼠模型验证"},
+         {s:"IND-enabling毒理",d:"急毒（MTD）、遗传毒性（Ames+微核）、安全药理（hERG+CNS+呼吸）"},
+       ],
+       market:{channels:["国际BD授权（MNC）","国内创新药VC融资","NMPA孤儿药资格（加速审评）"],
+         pricing:"临床前授权$5-20M+里程碑，Phase I后$30-100M+",
+         timeline:"Y1-2合成筛选→Y3先导确认→Y4体内→Y5 IND申报",
+         moat:["C4β位修饰核心专利族","天然原料垂直整合","中国/美国双报IND协同"]}},
+    ]
+  },
+  helleborus:{
+    id:"helleborus",latin:"Helleborus thibetanus",chinese:"铁筷子",
+    alias:"冷域铁筷子/HTF-1心苷",color:"#7c3aed",accent:"#a78bfa",glyph:"◈",
+    tag:"抗肿瘤先导",tier:"旗舰",
+    summary:"HTF-1心苷Na⁺/K⁺-ATPase靶点，LNP纳米递送，HFPS多糖蓝帽",
+    keyCompounds:["HTF-1心苷","HFPS多糖","β-谷甾醇"],
+    trl:4,innovScore:94,marketScore:88,
+    sysPrompt:`你是铁筷子（Helleborus thibetanus）全栈研发专家，覆盖：1.HTF-1心苷抗肿瘤：Na⁺/K⁺-ATPase抑制IC50、MAPK/ERK通路、pH响应LNP纳米递送(DSPC:胆固醇:DSPE-PEG2000:HTF-1=50:38.5:1.5:10,粒径80-150nm,包封率>85%)、hERG心脏毒性安全窗 2.HFPS多糖蓝帽：热水提取→Sevag脱蛋白→DEAE-Sepharose纯化→冻干，多糖≥60%，心苷残留<0.01%，NK细胞/碳廓清功效验证 3.商业化：HTF-1授权$30-300M；HFPS蓝帽¥180-380/盒60-68%毛利率。请提供工艺参数和商业化路径。`,
+    products:[
+      {id:"H1",tier:"旗舰",name:"HTF-1心苷LNP纳米递送抗肿瘤候选药",category:"化药1类/抗肿瘤",readiness:"5-8年",revenue:"授权$30-300M",
+       desc:"HTF-1通过Na⁺/K⁺-ATPase抑制+MAPK/ERK激活发挥抗肿瘤作用，pH响应LNP靶向肿瘤微环境释放。",
+       process:[
+         {s:"HTF-1提取分离",d:"根茎95%乙醇回流提取，正丁醇萃取苷类，Sephadex LH-20凝胶柱纯化，HTF-1纯度≥95%"},
+         {s:"结构全解析",d:"HR-MS、¹H-NMR、¹³C-NMR确认C17侧链差异，X射线单晶衍射确认绝对构型"},
+         {s:"LNP配方制备",d:"DSPC:胆固醇:DSPE-PEG2000:HTF-1=50:38.5:1.5:10(mol%)，乙醇注射法，微流控制备"},
+         {s:"pH响应修饰",d:"引入DOPE/DOTAP，pH 6.5(肿瘤)vs 7.4(正常)释放率比>5:1，释放动力学测定"},
+         {s:"表征与包封率",d:"DLS粒径80-150nm，PDI<0.15，Zeta≤-30mV，包封率HPLC测定>85%"},
+         {s:"心脏毒性对比",d:"hERG通道抑制IC50，H9C2心肌细胞LDH法，比较游离HTF-1 vs LNP安全窗口"},
+       ],
+       market:{channels:["肿瘤专科医院PI-initiated临床","CRO合作I期安全性","孤儿药资格申请"],
+         pricing:"临床前授权$5-15M，Phase I后$30-100M+里程碑",
+         timeline:"Y1结构+提取SOP→Y2 LNP+体外→Y3 IND-enabling→Y5 FIH",
+         moat:["天然心苷类抗肿瘤专利","LNP递送系统专利","冷域资源稀缺整合"]}},
+      {id:"H2",tier:"战略",name:"HFPS多糖免疫调节蓝帽软胶囊",category:"保健食品（蓝帽）",readiness:"2-3年",revenue:"¥180-380/盒",
+       desc:"HFPS多糖激活NK细胞和巨噬细胞，去除心苷组分后开发蓝帽保健食品（免疫调节）快速变现。",
+       process:[
+         {s:"多糖热水提取",d:"根茎80°C热水提取2h，料液比1:15，离心，加乙醇至80%醇沉，离心收集沉淀"},
+         {s:"Sevag脱蛋白",d:"氯仿:正丁醇=4:1，Sevag法去蛋白3次，蛋白残留Bradford法验证<2%"},
+         {s:"DEAE纯化",d:"DEAE-Sepharose离子交换，NaCl梯度0→0.5M，收集0.3M主活性组分"},
+         {s:"冻干成粉",d:"冷冻干燥48h，水分<5%，多糖含量苯酚-硫酸法≥60%，HTF-1残留LC-MS/MS<0.01%"},
+         {s:"功效验证",d:"NK细胞活性（ADCC法）、碳廓清吞噬指数、ConA淋巴细胞转化，3项指标均↑"},
+       ],
+       market:{channels:["天猫/京东旗舰店（免疫调节）","药店OTC保健品","私域微信社群"],
+         pricing:"¥180-380/盒(30粒)，毛利60-68%；秋冬营销峰值",
+         timeline:"M1-6多糖SOP+功效→M7-18蓝帽注册→M19上市",
+         moat:["HTF-1研究副产品毒理数据","冷域差异化来源","HFPS多糖Q-marker专利"]}},
+    ]
+  },
+  achillea:{
+    id:"achillea",latin:"Achillea millefolium",chinese:"欧蓍草",
+    alias:"西洋蓍草/Yarrow",color:"#0369a1",accent:"#38bdf8",glyph:"⬡",
+    tag:"创伤修复",tier:"战略",
+    summary:"Achillin+芹菜素Franz Cell透皮验证优异，F-01/F-02九SKU三层产品体系",
+    keyCompounds:["Achillin","芹菜素","母菊薁","α-侧柏酮"],
+    trl:6,innovScore:87,marketScore:91,
+    sysPrompt:`你是欧蓍草（Achillea millefolium）产品研发工程师，掌握：1.F-01创伤修复凝胶：Achillin≥0.15%+芹菜素≥0.08%双Q-marker，卡波姆940 0.8%凝胶，Franz Cell 24h渗透≥40μg/cm²（猪耳皮肤，PBS），NMPA化妆品备案，终端¥158-328/支 2.F-02静脉舒适凝胶：欧蓍草:七叶树=3:1，母菊薁≥0.05%+七叶皂苷≥1.5%，大鼠离体静脉环张力验证≥30%，II类医疗器械申报 3.EMA THR传统草药注册和CBEC亚洲市场策略。请提供配方浓度、工艺参数和商业数字。`,
+    products:[
+      {id:"A1",tier:"旗舰",name:"F-01创伤修复凝胶",category:"化妆品备案/修护类",readiness:"6-12个月",revenue:"¥158-328/支",
+       desc:"Achillin+芹菜素双效抗炎，Franz Cell透皮验证，NMPA化妆品修护类备案，快速上市。",
+       process:[
+         {s:"Q-marker提取",d:"地上部80%乙醇回流提取，D101大孔树脂纯化，70%乙醇洗脱，喷雾干燥；Achillin≥0.15%，芹菜素≥0.08%"},
+         {s:"凝胶基质",d:"卡波姆940 0.8%+羟乙基纤维素0.5%溶胀，三乙醇胺调pH 6.8-7.2，加1,3-丁二醇5%保湿"},
+         {s:"活性成分加入",d:"提取物粉末以丙二醇:水(3:7)预溶，超声辅助，加透明质酸钠1%协同保湿"},
+         {s:"均质乳化",d:"80°C油相（角鲨烷3%+VE 0.5%）加入水相，均质10000rpm×5min，冷却至40°C入凝胶"},
+         {s:"Franz Cell验证",d:"Franz扩散池，离体猪耳皮肤，PBS接收液，2/4/8/12/24h采样，Achillin 24h累积≥40μg/cm²"},
+         {s:"稳定性",d:"40°C/75%RH 6个月，Achillin≥标示量95%，外观/pH/微生物符合化妆品规范"},
+       ],
+       market:{channels:["皮肤科/烧伤科医院院内代售","天猫医药馆/京东健康","医美诊所专业线","CBEC日韩"],
+         pricing:"零售¥158-328/支(30g)；医美B端¥85-120/支；复购周期30-45天",
+         timeline:"配方锁定→稳定性(6M)→NMPA备案(3-6M)→上市 共9-12M",
+         moat:["Franz Cell数据包（独有）","Q-marker双指标组合物专利","EMA THR认证欧洲背书"]}},
+      {id:"A2",tier:"战略",name:"F-02下肢静脉舒适凝胶",category:"NMPA II类医疗器械",readiness:"1.5-2年",revenue:"¥198-398/支",
+       desc:"欧蓍草+七叶皂苷复方强化静脉张力，慢性静脉功能不全辅助护理，申报II类医疗器械。",
+       process:[
+         {s:"复方提取",d:"欧蓍草:七叶树种子=3:1，70%乙醇提取，母菊薁≥0.05%，七叶皂苷β-七叶皂苷钠≥1.5%"},
+         {s:"清凉感基质",d:"卡波姆+薄荷醇0.3%+冰片0.1%，制备清凉通透基质，形成即干感"},
+         {s:"静脉张力体外验证",d:"大鼠离体静脉环（胸主动脉），KC1预收缩，浓度响应曲线，张力增加≥30%"},
+         {s:"透皮促渗",d:"氮酮1%作促渗剂，Franz Cell对比无促渗剂组，七叶皂苷透皮提升≥2倍"},
+         {s:"临床评估",d:"20例下肢静脉曲张患者4周，VAS量表（沉重感/疼痛/肿胀）盲法评估"},
+         {s:"II类器械申报",d:"产品技术要求+ISO 10993生物相容性+性能研究+临床评价报告"},
+       ],
+       market:{channels:["血管外科/骨科门诊","药店静脉品类","空乘/护士职业健康福利"],
+         pricing:"零售¥198-398/支(50mL)；职业场景B端¥110-160/支",
+         timeline:"Y1配方+体外+临床→Y2 II类器械申报→Y3上市",
+         moat:["欧蓍草+七叶皂苷复方专利","临床VAS+超声数据","II类器械准入壁垒"]}},
+    ]
+  },
+  bergenia:{
+    id:"bergenia",latin:"Bergenia crassifolia",chinese:"岩白菜",
+    alias:"厚叶岩白菜/冷域岩生草本",color:"#be185d",accent:"#fb7185",glyph:"❋",
+    tag:"Arbutin美白",tier:"战略",
+    summary:"天然Arbutin原料溢价5-10倍，青藏溯源认证，美白精华NMPA特化注册",
+    keyCompounds:["熊果苷(Arbutin)","岩白菜素(Bergenin)","没食子酸","儿茶素"],
+    trl:5,innovScore:82,marketScore:85,
+    sysPrompt:`你是岩白菜（Bergenia crassifolia）美白化妆品研发工程师，掌握：1.天然高纯Arbutin原料：根茎含量0.8-3%，60°C水提→AB-8大孔树脂（20%乙醇洗脱）→活性炭脱色→减压结晶→乙醇:水(1:3)重结晶，HPLC≥98.5%，对苯二酚残留<0.01%(LC-MS)，天然¥2000-8000/kg vs合成¥200-400/kg 2.美白精华：天然Arbutin 2%+Bergenin 0.5%+烟酰胺3%，pH 6.0-6.5，酪氨酸酶IC50≈0.3mM，NMPA特殊化妆品注册，终端¥298-598/瓶 3.EU Cosmos天然认证，青藏溯源GAP认证体系，Mexameter黑色素指数(MI)人体测定。请提供配方浓度、工艺参数和商业数字。`,
+    products:[
+      {id:"B1",tier:"旗舰",name:"天然高纯熊果苷原料（β-Arbutin ≥98.5%）",category:"化妆品原料/B2B",readiness:"1-1.5年",revenue:"¥2000-8000/kg",
+       desc:"青藏高原来源Arbutin含量比平原高30-50%，天然提取认证溢价5-10倍对抗合成竞品。",
+       process:[
+         {s:"GAP采收",d:"青藏海拔2500-4000m，秋季9-10月（Arbutin含量峰值），GAP记录产地/批次"},
+         {s:"水提醇沉",d:"60°C纯水提取2次（料液比1:12，1h/次），合并提取液，加4倍乙醇醇沉杂多糖"},
+         {s:"AB-8大孔树脂",d:"上样pH 5-6，水洗2BV，20%乙醇洗脱Arbutin，收集洗脱液浓缩"},
+         {s:"活性炭脱色",d:"0.5%活性炭，60°C搅拌30min，过滤去色素和气味"},
+         {s:"减压结晶+重结晶",d:"55°C减压浓缩Brix≥30%，10°C结晶12h；乙醇:水(1:3)重结晶2次，HPLC≥98.5%"},
+         {s:"质量全检",d:"HPLC含量、LC-MS/MS测对苯二酚<0.01%、比旋度[α]D+59~+61°、重金属<10ppm"},
+       ],
+       market:{channels:["国内美妆原料商（珀莱雅/上海家化供应链）","国际原料商Givaudan/Symrise天然线","EU Cosmos欧洲天然美妆品牌"],
+         pricing:"天然≥98.5%：¥2000-8000/kg（对苯二酚<0.01%安全认证溢价）；合成仅¥200-400/kg",
+         timeline:"Y1提取纯化SOP+质量标准→Y2 EU Cosmos申请→Y2.5首批B2B出货",
+         moat:["高原有机认证+青藏溯源","EU Cosmos天然认证","对苯二酚<0.01%安全差异化"]}},
+      {id:"B2",tier:"快变",name:"岩白菜美白精华液（White Clarity Serum）",category:"特殊化妆品（祛斑美白）",readiness:"1-1.5年",revenue:"¥298-598/瓶",
+       desc:"天然Arbutin 2%+Bergenin 0.5%+烟酰胺3%三重协同美白，NMPA特殊化妆品注册，人体MI测定支撑。",
+       process:[
+         {s:"配方设计",d:"A水相：Arbutin 2%+烟酰胺3%+透明质酸钠0.1%；B相：卡波姆0.3%；C相：Bergenin 0.5%+VC磷酸酯0.2%"},
+         {s:"制备工艺",d:"75°C A相溶解→冷却至40°C→加C相→卡波姆调稠→三乙醇胺调pH 6.0-6.5（防Arbutin水解）"},
+         {s:"酪氨酸酶抑制",d:"蘑菇酪氨酸酶，底物L-DOPA 1mM，配方梯度稀释，IC50与Arbutin单体+Bergenin协同对比"},
+         {s:"稳定性",d:"40°C/75%RH 6个月：Arbutin含量≥95%，pH/颜色/气味无变化"},
+         {s:"人体功效评估",d:"30例受试者，4周使用，Mexameter MI黑色素指数测定（使用前/2周/4周）"},
+         {s:"NMPA特化注册",d:"配方备案+酪氨酸酶抑制报告+人体功效评价（MI降低≥5%为合格）+安全评估报告"},
+       ],
+       market:{channels:["天猫/京东美妆旗舰","小红书/抖音成分党KOL","丝芙兰/屈臣氏线下","CBEC欧洲（€68-128）"],
+         pricing:"国内¥298-598/30mL；毛利68-75%；欧洲Clean Beauty溢价明显",
+         timeline:"配方锁定→NMPA特化注册(12-18M)→国内+CBEC欧洲同步上市",
+         moat:["天然Arbutin无对苯二酚恐慌","Arbutin+Bergenin+没食子酸三元专利","高原溯源信任溢价"]}},
+    ]
+  },
+  euphrasia:{
+    id:"euphrasia",latin:"Euphrasia officinalis",chinese:"明目草",
+    alias:"小米草/Eyebright",color:"#0f766e",accent:"#2dd4bf",glyph:"◎",
+    tag:"眼部护理",tier:"快变",
+    summary:"三轨并行：无菌滴眼液(II类医疗器械)+眼膜+Aucubin协同抗炎研究",
+    keyCompounds:["Aucubin","桃叶珊瑚苷","芦丁","咖啡酸"],
+    trl:5,innovScore:81,marketScore:86,
+    sysPrompt:`你是明目草（Euphrasia officinalis）眼部护理产品研发专家，掌握：1.无菌眼用溶液：Aucubin提取(D101树脂,≥40%)，Aucubin 0.05%+芦丁0.02%+透明质酸钠0.1%，pH 7.0-7.4，渗透压280-320 mOsm，0.22μm PES无菌过滤，A级区灌装，Draize眼刺激≤5，NMPA II类医疗器械注册，¥88-168/支 2.眼部水凝胶眼膜：卡拉胶1.5%，Aucubin≥0.02%+咖啡因0.5%，4°C成型，化妆品备案6-10M，¥128-268/盒 3.Aucubin+他克莫司Chou-Talalay CI协同验证。请提供配方参数、工艺细节和商业数字。`,
+    products:[
+      {id:"E1",tier:"旗舰",name:"明目草无菌眼用溶液（Path B）",category:"NMPA II类医疗器械/眼科",readiness:"2-3年",revenue:"¥88-168/支",
+       desc:"Aucubin抗炎+芦丁抗氧化，无菌眼用溶液，干眼症辅助护理，II类医疗器械准入壁垒。",
+       process:[
+         {s:"Aucubin提取",d:"全草60%乙醇提取，D101树脂吸附，水洗→30%乙醇洗脱，冻干；Aucubin HPLC≥40%"},
+         {s:"溶液配制",d:"Aucubin 0.05%+芦丁0.02%+透明质酸钠0.1%+EDTA-Na 0.01%，磷酸盐缓冲液"},
+         {s:"pH渗透压调节",d:"NaCl调渗透压280-320 mOsm/kg，三乙醇胺调pH 7.0-7.4，接近生理泪液"},
+         {s:"无菌过滤灌装",d:"0.22μm PES滤膜除菌，A级洁净区灌装，密封性气泡法检测，10mL玻璃瓶"},
+         {s:"无菌检验",d:"中国药典2020版通则1101，需氧/厌氧/真菌，14天培养，阴性合格"},
+         {s:"眼部刺激性",d:"Draize眼刺激试验（新西兰兔），结膜/虹膜/角膜评分总和≤5分"},
+       ],
+       market:{channels:["眼科医院/诊所处方","药店OTC眼药水","互联网医院眼科","视光中心"],
+         pricing:"¥88-168/支(10mL)，毛利62-70%；干眼症高复购",
+         timeline:"Y1提取+配方→Y2无菌工艺+眼刺激→Y3 II类器械注册→Y4上市",
+         moat:["天然Aucubin抗炎差异化","无防腐剂配方","II类器械准入壁垒"]}},
+      {id:"E2",tier:"快变",name:"眼部舒缓水凝胶眼膜（Path C）",category:"化妆品备案/眼部护理",readiness:"6-10个月",revenue:"¥128-268/盒",
+       desc:"Aucubin+咖啡因协同，卡拉胶果冻眼膜，缓解疲劳/淡化黑眼圈，化妆品备案6-10个月快速上市。",
+       process:[
+         {s:"提取物标准化",d:"明目草水提浓缩，Aucubin HPLC≥0.02%，咖啡酸≥0.005%，HPLC双指标"},
+         {s:"卡拉胶基质",d:"卡拉胶1.5%+甘油5%+透明质酸钠0.2%，80°C完全溶解，冷却至50°C"},
+         {s:"活性加入",d:"50°C加入明目草提取物+咖啡因0.5%+视黄醇棕榈酸酯0.01%，混匀"},
+         {s:"冷藏成型",d:"灌入眼膜模具，4°C冷藏定型2h，每片重2.5±0.2g，厚度均一"},
+         {s:"密封包装",d:"铝箔袋单片密封，充氮保鲜（防Aucubin氧化），批次Aucubin含量检测"},
+         {s:"功效测试",d:"20人VAS眼部疲劳评分，使用前后黑眼圈色差ΔE（分光色差仪）测定"},
+       ],
+       market:{channels:["天猫/京东眼部护理","抖音晚间护理KOL","便利店/超市眼部货架","美容院配套"],
+         pricing:"¥128-268/盒(7对装)，毛利65-72%；7天打底场景营销",
+         timeline:"配方→稳定性(3M)→NMPA备案(3-4M)→M6-10上市",
+         moat:["明目草Aucubin成分差异化","中草本眼膜叙事","小红书话题种草壁垒"]}},
+    ]
+  },
+  urtica:{
+    id:"urtica",latin:"Urtica dioica",chinese:"野生荨麻",
+    alias:"冷域野生/Stinging Nettle",color:"#166534",accent:"#4ade80",glyph:"✦",
+    tag:"Q-marker专利",tier:"战略",
+    summary:"三元Q-marker专利（芸香苷:异槲皮苷:绿原酸），男性健康复方蓝帽",
+    keyCompounds:["芸香苷","异槲皮苷","绿原酸","β-谷甾醇"],
+    trl:5,innovScore:83,marketScore:79,
+    sysPrompt:`你是冷域野生荨麻（Urtica dioica）研发商业化专家，掌握：1.Q-marker三元体系：芸香苷:异槲皮苷:绿原酸=3:1:0.8（HPLC同步定量360nm+320nm），55%乙醇60°C回流提取，X-5大孔树脂（水洗→20%→60%乙醇梯度），喷雾干燥（进180°C/出85°C），Q-marker总量≥8% 2.蓝帽软胶囊：DTH小鼠实验（DNFB诱导，耳肿胀抑制≥30%），蓝帽免疫调节功能声称 3.男性健康复方：荨麻根β-谷甾醇≥0.5%+锯棕榈超临界CO₂提取（脂肪酸≥85%），5α-还原酶体外Ki值，LNCaP/DHT模型 4.商业化：蓝帽¥168-368/盒，男性复方¥298-498/盒。请提供工艺参数和商业数字。`,
+    products:[
+      {id:"U1",tier:"旗舰",name:"冷域荨麻Q-marker抗炎蓝帽软胶囊",category:"保健食品（蓝帽）/免疫调节",readiness:"2-3年",revenue:"¥168-368/盒",
+       desc:"三元Q-marker体系（芸香苷:异槲皮苷:绿原酸=3:1:0.8）申请组合物专利，注册蓝帽免疫调节功能食品。",
+       process:[
+         {s:"Q-marker定量",d:"HPLC同步定量：芸香苷/异槲皮苷360nm，绿原酸320nm；比例控制3:1:0.8±15%，批批检验"},
+         {s:"乙醇回流提取",d:"冷域嫩茎叶，55%乙醇60°C回流提取2次（1h/次，料液比1:8），合并，减压浓缩"},
+         {s:"X-5大孔树脂",d:"上样→水洗2BV（去杂）→20%乙醇洗（去色素）→60%乙醇洗脱目标组分"},
+         {s:"喷雾干燥",d:"进风180°C，出风85°C，固形物≥30%，Q-marker总量≥8%（干粉），水分<4%"},
+         {s:"软胶囊制备",d:"提取物粉末+大豆油+蜂蜡，充填量300mg/粒，明胶软胶囊，60粒/盒"},
+         {s:"功效动物实验",d:"DNFB诱导小鼠DTH实验，耳肿胀抑制率≥30%（vs模型组），ELISA测IL-2/IL-4"},
+       ],
+       market:{channels:["药店保健品专柜（免疫调节）","天猫/京东健康","秋冬防感冒场景营销","企业健康福利"],
+         pricing:"¥168-368/盒(60粒)，毛利60-65%；月消耗1-2盒，高复购",
+         timeline:"M1-8 SOP+功效实验→M9-24蓝帽注册→M25上市",
+         moat:["Q-marker三元组合物专利","冷域溯源高含量背书","双轨RCT临床证据"]}},
+      {id:"U2",tier:"战略",name:"荨麻男性健康复方胶囊",category:"保健食品（蓝帽）/男性健康",readiness:"2.5-3年",revenue:"¥298-498/盒",
+       desc:"荨麻根β-谷甾醇+锯棕榈脂肪酸，5α-还原酶抑制协同，前列腺健康功能食品。",
+       process:[
+         {s:"荨麻根提取",d:"根部70%乙醇提取，β-谷甾醇GC法≥0.5%；5α-还原酶抑制活性体外验证"},
+         {s:"锯棕榈超临界",d:"超临界CO₂萃取（35MPa，50°C），脂肪酸≥85%（GC-MS），月桂酸/肉豆蔻酸为主活性"},
+         {s:"复方配伍",d:"荨麻根:锯棕榈=2:1，加β-谷甾醇单体20mg/粒，Chou-Talalay协同效应验证"},
+         {s:"5α-还原酶测定",d:"荧光底物法，Ki值测定，复方vs单组分vs非那雄胺对照，CI值计算"},
+         {s:"LNCaP细胞实验",d:"前列腺癌细胞DHT诱导增殖模型，复方抑制IC50，ELISA测PSA分泌"},
+         {s:"软胶囊成型",d:"复方粉末+MCT油，充填350mg/粒，60粒/盒，人体耐受性观察20例30天"},
+       ],
+       market:{channels:["泌尿外科医院辅助销售","男性健康私域社群","抖音/B站泌尿健康KOL"],
+         pricing:"¥298-498/盒(60粒)；天然vs化药副作用差异化",
+         timeline:"Y1复方筛选+LNCaP→Y2人体耐受→Y3蓝帽申报",
+         moat:["5α-还原酶数据媒体传播价值高","天然复方vs非那雄胺副作用","中西双植物差异化"]}},
+    ]
+  },
+  rubus:{
+    id:"rubus",latin:"Rubus idaeus",chinese:"冷域覆盆子",
+    alias:"野生树莓/Wild Raspberry",color:"#9d174d",accent:"#f472b6",glyph:"◆",
+    tag:"花青素溢价",tier:"快变",
+    summary:"花青素微胶囊B2B原料+RTD美颜饮品，全球FDA GRAS+EU Novel Food+蓝帽三轨认证",
+    keyCompounds:["花青素","鞣花酸","覆盆子酮","鞣花单宁"],
+    trl:7,innovScore:74,marketScore:93,
+    sysPrompt:`你是冷域覆盆子（Rubus idaeus）功能食品研发商业化专家，掌握：1.花青素微胶囊：0.1%盐酸-60%乙醇酸性提取（≥250mg/100g CGE），Amberlite XAD-7HP纯化，麦芽糊精DE18:阿拉伯胶=3:1壁材，高压均质15000psi×2，喷雾干燥（进180°C/出85°C），包封率≥85%，加速6M残留≥70% 2.B2B原料：花青素≥8%，¥3000-12000/kg，EU Organic认证 3.RTD美颜饮：花青素50mg+鞣花酸20mg+胶原蛋白肽500mg/50mL，pH 3.5，UHT灌装，¥38-68/瓶 4.全球三轨：FDA GRAS自我认定、EU Novel Food、中国蓝帽。请提供工艺参数和商业数字。`,
+    products:[
+      {id:"R1",tier:"旗舰",name:"花青素微胶囊原料（≥8%，稳定型）",category:"功能食品原料/B2B",readiness:"1-2年",revenue:"¥3000-12000/kg",
+       desc:"解决花青素稳定性差核心痛点，包封率≥85%，稳定性提升8倍，B2B供应美妆/功能食品品牌。",
+       process:[
+         {s:"酸性醇提取",d:"0.1%盐酸-60%乙醇，料液比1:6，50°C避光30min；花青素总量pH差示法≥250mg/100g(CGE)"},
+         {s:"Amberlite纯化",d:"XAD-7HP树脂，水洗→10%乙醇洗杂→70%酸性乙醇洗脱，浓缩"},
+         {s:"壁材配制",d:"麦芽糊精DE18 30%+阿拉伯胶10%（重量比3:1），60°C溶解，降至40°C"},
+         {s:"高压均质乳化",d:"花青素浓缩:壁材=1:4，高压均质15000psi×2次，乳滴粒径<2μm"},
+         {s:"喷雾干燥",d:"进风180°C，出风85°C，水分<5%，包封率HPLC≥85%"},
+         {s:"稳定性验证",d:"40°C/75%RH 6个月：花青素残留≥70%（vs未包封15-20%），A520色值保留率"},
+       ],
+       market:{channels:["国内功能饮料/酸奶原料（伊利/蒙牛供应链）","海外天然色素商（欧美）","膳食补充剂OEM"],
+         pricing:"花青素≥8%微胶囊：¥3000-12000/kg；稳定性认证溢价；合同制造ROI>3x",
+         timeline:"Y1工艺SOP+稳定性数据→Y2客户认证+EU Organic→Y3量产",
+         moat:["冷域野生高含量","微胶囊稳定性专利","EU Organic认证"]}},
+      {id:"R2",tier:"快变",name:"冷域美颜RTD浓缩饮品（50mL）",category:"特殊膳食食品/DTC",readiness:"8-12个月",revenue:"¥38-68/瓶",
+       desc:"花青素50mg+鞣花酸20mg+胶原蛋白肽500mg，50mL浓缩美颜小瓶，pH 3.5 UHT灌装。",
+       process:[
+         {s:"核心原料配伍",d:"花青素微胶囊（折合花青素50mg）+鞣花酸20mg+胶原蛋白肽500mg(1000Da)+VC 60mg/瓶"},
+         {s:"饮品基质",d:"覆盆子浓缩汁15%（溯源原料）+赤藓糖醇+柠檬酸调pH 3.5（花青素稳定最优pH）"},
+         {s:"高压均质",d:"12000psi均质，微胶囊在pH 3.5饮料中悬浮稳定性测试≥12个月"},
+         {s:"UHT灌装",d:"135°C×5s超高温瞬时杀菌，无菌灌装50mL棕色玻璃瓶，充氮密封"},
+         {s:"保质期验证",d:"室温12个月：花青素≥80%，感官≥7分，微生物<100 CFU/mL，阴性致病菌"},
+         {s:"消费者测试",d:"50例女性30天，皮肤水分（Corneometer）和弹性（Cutometer）基线对比"},
+       ],
+       market:{channels:["天猫女性健康/美容食品","小红书/抖音美颜饮品KOL","CBEC亚马逊北美/欧洲","便利店精品冷柜"],
+         pricing:"¥38-68/瓶(50mL)；6瓶装¥198-368；订阅制LTV>¥1200",
+         timeline:"配方(M1)→UHT工艺(M3)→食品SC许可(M6)→上市(M8-12)",
+         moat:["冷域野生溯源","RTD浓缩高溢价场景","花青素微胶囊稳定性壁垒"]}},
+    ]
+  },
+  caulophyllum:{
+    id:"caulophyllum",latin:"Caulophyllum robustum",chinese:"红毛七",
+    alias:"类叶牡丹/冷域根茎草本",color:"#155e75",accent:"#22d3ee",glyph:"◉",
+    tag:"Taspine创伤修复",tier:"战略",
+    summary:"含Taspine生物碱（唯一天然促愈合小分子），TGF-β1/Smad信号通路激活，透皮制剂+医疗级创伤敷料双轨",
+    keyCompounds:["Taspine","N-甲基金雀花碱","鹰爪豆碱","异喹啉类"],
+    trl:5,innovScore:88,marketScore:84,
+    sysPrompt:`你是红毛七（Caulophyllum robustum）创伤修复研发专家，掌握：1.Taspine生物碱：天然唯一促伤口愈合小分子，TGF-β1/Smad3通路激活→成纤维细胞HFL-1增殖，MMP-1/TIMP-1平衡调控，胶原重塑 2.产品C1透皮修复凝胶：Taspine 0.08%+积雪草苷0.05%协同，卡波姆940 0.6%基质，pH 6.0-6.5，Franz Cell 24h累积渗透≥25μg/cm²，NMPA化妆品修护类备案，终端¥188-388/支 3.产品C2医疗级创伤敷料（II类医疗器械）：Taspine 0.1%+壳聚糖2%复合水凝胶，Ashcroft评分+HE+Masson染色验证，¥280-580/盒 4.提取：根茎60%乙醇55°C回流，SCX阳离子交换树脂，Taspine≥90%。请提供工艺参数和商业数字。`,
+    products:[
+      {id:"C1",tier:"快变",name:"红毛七Taspine透皮修复凝胶",category:"化妆品备案/修护类",readiness:"8-12个月",revenue:"¥188-388/支",
+       desc:"Taspine 0.08%+积雪草苷0.05%协同促愈合，Franz Cell透皮验证，NMPA化妆品修护类备案，快速上市。",
+       process:[
+         {s:"Taspine提取标准化",d:"根茎60%乙醇55°C回流提取2次（1h/次，料液比1:8），SCX阳离子交换树脂pH 4.0上样，氨水梯度洗脱，HPLC-UV 280nm定量Taspine≥90%"},
+         {s:"凝胶基质制备",d:"卡波姆940 0.6%充分溶胀12h+羟丙基甲基纤维素0.3%，三乙醇胺调pH 6.0-6.5，加丙二醇5%作保湿/溶剂"},
+         {s:"活性成分配伍",d:"Taspine提取物（折合0.08%）+积雪草苷0.05%（协同TGF-β1信号）+透明质酸钠0.1%预溶于水相，超声辅助溶解"},
+         {s:"Franz Cell透皮验证",d:"离体猪耳皮肤，PBS(pH 7.4)接收液，采样4/8/12/24h，HPLC测Taspine，24h累积角质层渗透≥25μg/cm²"},
+         {s:"皮肤安全性评估",d:"KeratinoSens光毒/刺激性，Draize皮肤贴片（30例人体），积分≤1"},
+         {s:"稳定性研究",d:"40°C/75%RH加速6个月，Taspine含量≥95%标示量，pH/外观/微生物符合化妆品规范"},
+       ],
+       market:{channels:["皮肤科/烧伤科医院院内代售","天猫医药馆/京东健康","医美诊所术后修护专业线","CBEC欧洲Clean Beauty"],
+         pricing:"零售¥188-388/支(30g)；医美B端¥95-135/支；术后修护场景高溢价，复购周期21天",
+         timeline:"配方锁定→Franz Cell+稳定性(6M)→NMPA化妆品备案(3-4M)→上市共9-12M",
+         moat:["Taspine天然透皮凝胶全球首创专利","Franz Cell数据包独有","TGF-β1/Smad3机制学术发表支撑"]}},
+      {id:"C2",tier:"战略",name:"Taspine医疗级创伤愈合敷料",category:"NMPA II类医疗器械/创伤护理",readiness:"2-3年",revenue:"¥280-580/盒",
+       desc:"Taspine 0.1%+壳聚糖2%复合水凝胶敷料，促慢性创面愈合，大鼠全层皮肤缺损模型验证，申报II类医疗器械。",
+       process:[
+         {s:"壳聚糖水凝胶基质",d:"壳聚糖（脱乙酰度≥90%，MW 200-400kDa）2%溶于1%乙酸，加β-甘油磷酸钠（温敏凝胶），37°C成胶时间<5min"},
+         {s:"Taspine负载",d:"Taspine提取物（折合0.1%）在pH 5.5溶液中与壳聚糖混合，静电相互作用促进结合，包封率≥75%"},
+         {s:"大鼠全层皮肤缺损模型",d:"SD大鼠背部打孔（直径8mm），分组：空白对照/凡士林纱布/Taspine敷料，3/7/14/21天取样，创面闭合率（Image J）"},
+         {s:"Ashcroft评分+组织学",d:"HE染色（表皮再生层厚度）+Masson三色染色（胶原纤维沉积）+免疫组化（TGF-β1/Smad3蛋白表达），Ashcroft评分<2为优"},
+         {s:"体外释放+抗菌",d:"PBS释放曲线（24h缓释≥60%），抑菌圈法验证壳聚糖对S.aureus/E.coli抑菌，MIC测定"},
+         {s:"ISO 10993生物相容性",d:"细胞毒性（L929，MTS法，≥80%活力）、皮内反应（兔）、全身毒性急毒，符合II类器械要求"},
+       ],
+       market:{channels:["烧伤科/整形外科医院耗材采购","社区卫生中心换药室","糖尿病足专科门诊","Smith+Nephew/Mölnlycke合作OEM出口"],
+         pricing:"¥280-580/盒(10片装)；院内采购¥160-240/盒；糖尿病足慢性创面高复购",
+         timeline:"Y1水凝胶配方+动物模型→Y2 ISO 10993+抗菌数据→Y3 II类器械注册申报→Y4上市",
+         moat:["Taspine促愈合+壳聚糖抗菌双机制组合物专利","动物模型Ashcroft/Masson数据独有","国际合作OEM出口壁垒"]}},
+    ]
+  },
+};
+
+const TRACKS=[
+  {id:"anticancer",label:"抗肿瘤",en:"ONCOLOGY",icon:"⚗",color:"#b45309",accent:"#fbbf24",
+   desc:"先导化合物·衍生物库·IND申报·原料药CDMO",members:["sinopodophyllum","helleborus"]},
+  {id:"skin",label:"皮肤修复 & 美白",en:"DERM / COSMECEUTICAL",icon:"✦",color:"#be185d",accent:"#fb7185",
+   desc:"透皮制剂·Franz Cell·化妆品备案·美白原料B2B·医疗器械创伤敷料",members:["achillea","bergenia","caulophyllum"]},
+  {id:"eye",label:"眼部护理",en:"OPHTHALMIC",icon:"◎",color:"#0f766e",accent:"#2dd4bf",
+   desc:"无菌滴眼液·II类医疗器械·Aucubin抗炎",members:["euphrasia"]},
+  {id:"nutraceutical",label:"功能食品 & 植物原料",en:"NUTRACEUTICAL",icon:"◆",color:"#166534",accent:"#4ade80",
+   desc:"蓝帽注册·Q-marker·冷域溯源·全球三轨认证",members:["urtica","rubus"]},
+];
+
+const TIER_C={"旗舰":"#f59e0b","战略":"#a78bfa","快变":"#34d399"};
+
+let state={
+  view:"hub",activeSp:null,hubView:"grouped",
+  expanded:{anticancer:true,skin:true,eye:true,nutraceutical:true},
+  search:"",tab:"products",openProduct:null,selStep:null,msgs:[],loading:false,
+};
+
+function setState(patch){Object.assign(state,patch);render();}
+
+async function askAI(text){
+  if(!text.trim()||state.loading)return;
+  const sp=DB[state.activeSp];
+  const newMsgs=[...state.msgs,{role:"user",content:text}];
+  setState({msgs:newMsgs,loading:true,tab:"chat"});
+  try{
+    const res=await fetch("/api/chat",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
+        system:sp.sysPrompt,messages:newMsgs})
+    });
+    const data=await res.json();
+    const reply=(data.content&&data.content.find(b=>b.type==="text")||{}).text||"无法获取回复";
+    setState({msgs:[...newMsgs,{role:"assistant",content:reply}],loading:false});
+  }catch(e){
+    setState({msgs:[...newMsgs,{role:"assistant",content:"⚠️ API调用失败，请检查网络"}],loading:false});
+  }
+}
+
+function goHub(){setState({view:"hub",activeSp:null,msgs:[],tab:"products",openProduct:null,selStep:null});}
+function goEngine(id){setState({view:"engine",activeSp:id,msgs:[],tab:"products",openProduct:null,selStep:null});}
+
+function scoreHTML(val,color,label){
+  const r=17,circ=2*Math.PI*r,dash=(val/100)*circ;
+  return`<div class="score-box"><svg width="38" height="38" style="transform:rotate(-90deg)"><circle cx="19" cy="19" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="19" cy="19" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/><text x="19" y="19" text-anchor="middle" dominant-baseline="middle" style="transform:rotate(90deg);transform-origin:19px 19px;font-size:9px;fill:${color};font-family:monospace;font-weight:700">${val}</text></svg><div class="score-lbl">${label}</div></div>`;
+}
+function tierBadge(tier){const c=TIER_C[tier]||"#94a3b8";return`<span class="sp-tier-badge" style="background:${c}20;color:${c};border:1px solid ${c}44">${tier}</span>`;}
+function productTierBadge(tier){const rc={"旗舰":"#f59e0b","快变":"#34d399","战略":"#a78bfa","探索":"#94a3b8"}[tier]||"#94a3b8";return`<span class="product-tier" style="background:${rc}22;color:${rc};border:1px solid ${rc}44">${tier}</span>`;}
+
+function renderHub(){
+  const {hubView,expanded,search}=state;
+  const all=Object.values(DB).filter(sp=>{
+    if(!search)return true;
+    const q=search.toLowerCase();
+    return sp.chinese.includes(q)||sp.latin.toLowerCase().includes(q)||sp.alias.toLowerCase().includes(q);
+  });
+  const totalProducts=Object.values(DB).reduce((s,sp)=>s+(sp.products?sp.products.length:0),0);
+  const totalSteps=Object.values(DB).reduce((s,sp)=>s+(sp.products?sp.products.reduce((ss,p)=>ss+p.process.length,0):0),0);
+  let html=`<div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" style="color:#e8eaf0">${Object.keys(DB).length}种</div><div class="stat-lbl">收录物种</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#fbbf24">${totalProducts}项</div><div class="stat-lbl">产品方案</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#34d399">${totalSteps}步</div><div class="stat-lbl">工艺步骤</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#a78bfa">${TRACKS.length}条</div><div class="stat-lbl">研发赛道</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="hub-search" placeholder="搜索植物名、学名、成分…" value="${search}" oninput="setState({search:this.value})"/></div>
+    <div class="view-toggle">
+      <button class="view-btn ${hubView==='grouped'?'active':''}" onclick="setState({hubView:'grouped'})">赛道分组</button>
+      <button class="view-btn ${hubView==='all'?'active':''}" onclick="setState({hubView:'all'})">全部平铺</button>
+    </div>
+    ${hubView==='grouped'?`<button class="ctrl-btn" onclick="setState({expanded:{anticancer:true,skin:true,eye:true,nutraceutical:true}})">全展开</button><button class="ctrl-btn" onclick="setState({expanded:{anticancer:false,skin:false,eye:false,nutraceutical:false}})">全折叠</button>`:''}
+    <span class="hub-count">${all.length}/${Object.keys(DB).length}</span>
+  </div>`;
+  if(hubView==='grouped'){
+    TRACKS.forEach(track=>{
+      const members=track.members.map(id=>DB[id]).filter(sp=>{
+        if(!search)return true;
+        const q=search.toLowerCase();
+        return sp.chinese.includes(q)||sp.latin.toLowerCase().includes(q)||sp.alias.toLowerCase().includes(q);
+      });
+      if(!members.length)return;
+      const isOpen=!!expanded[track.id];
+      html+=`<div class="track-group fade-up" style="border:1px solid ${isOpen?track.color+'44':'rgba(255,255,255,0.07)'};background:${isOpen?track.color+'06':'rgba(255,255,255,0.015)'}">
+        <div class="track-header" onclick="toggleTrack('${track.id}')">
+          <div class="track-icon-box" style="background:${track.color}22;border:1px solid ${track.color}44;color:${track.accent}">${track.icon}</div>
+          <div style="flex:1"><div style="display:flex;align-items:center"><span class="track-label" style="color:${track.accent}">${track.label}</span><span class="track-en">${track.en}</span></div><div class="track-desc">${track.desc}</div></div>
+          <div class="track-badges"><div style="display:flex;gap:3px">${members.map(sp=>`<div class="track-glyph-mini" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>`).join('')}</div><span class="track-count-badge" style="background:${track.color}22;color:${track.accent};border:1px solid ${track.color}44">${members.length}种</span><span class="track-arrow" style="color:${isOpen?track.accent:'rgba(255,255,255,0.17)'};transform:${isOpen?'rotate(90deg)':'none'}">›</span></div>
+        </div>
+        ${isOpen?`<div class="track-body">${members.map(sp=>compactCardHTML(sp)).join('')}</div>`:''}
+      </div>`;
+    });
+  }else{
+    html+=`<div class="flat-grid">${all.map(sp=>flatCardHTML(sp)).join('')}</div>`;
+  }
+  return html;
+}
+
+function compactCardHTML(sp){
+  return`<div class="compact-card" style="border-color:rgba(255,255,255,0.06)" onclick="goEngine('${sp.id}')" onmouseover="this.style.borderColor='${sp.color}66';this.style.background='${sp.color}0e'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.background='rgba(255,255,255,0.015)'">
+    <div class="sp-glyph-box" style="background:${sp.color}20;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+    <div><div style="display:flex;align-items:baseline"><span class="sp-name">${sp.chinese}</span><span class="sp-latin" style="margin-left:6px">${sp.latin}</span>${tierBadge(sp.tier)}</div><div class="compound-tags">${sp.keyCompounds.slice(0,4).map(c=>`<span class="ctag">${c}</span>`).join('')}</div></div>
+    <div><div class="trl-num" style="color:${sp.accent}">${sp.trl}<span style="font-size:7px;color:rgba(255,255,255,0.28)">/9</span></div><div class="trl-lbl">TRL</div></div>
+    <div class="score-pair">${scoreHTML(sp.innovScore,sp.accent,"创新")}${scoreHTML(sp.marketScore,sp.color,"市场")}</div>
+    <span class="card-arrow">→</span>
+  </div>`;
+}
+
+function flatCardHTML(sp){
+  return`<div class="flat-card" onclick="goEngine('${sp.id}')" onmouseover="this.style.borderColor='${sp.color}55';this.style.background='${sp.color}0d';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.02)';this.style.transform='none'">
+    <div style="display:flex;justify-content:space-between;margin-bottom:9px"><div style="display:flex;align-items:center;gap:8px"><div class="sp-glyph-box" style="background:${sp.color}20;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div><div><div class="sp-name">${sp.chinese}</div><div class="sp-latin">${sp.latin}</div></div></div>${tierBadge(sp.tier)}</div>
+    <p style="font-size:10px;color:rgba(232,234,240,0.48);line-height:1.6;margin-bottom:9px">${sp.summary}</p>
+    <div style="font-size:9px;color:${sp.accent};font-family:monospace;opacity:.6">${sp.products?sp.products.length+'项产品方案 →':'点击进入引擎'}</div>
+  </div>`;
+}
+
+function toggleTrack(id){setState({expanded:{...state.expanded,[id]:!state.expanded[id]}});}
+
+function renderEngine(){
+  const sp=DB[state.activeSp];
+  const {tab,msgs,loading,openProduct,selStep}=state;
+  let headerHTML=`<div class="engine-header" style="background:linear-gradient(135deg,${sp.color}18,transparent)">
+    <button class="back-btn" onclick="goHub()">←</button>
+    <div class="engine-glyph" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+    <div><div class="engine-name" style="color:${sp.accent}">${sp.chinese} · 研发产品引擎</div><div class="engine-latin">${sp.latin} · ${sp.alias}</div></div>
+    <div class="tab-bar">
+      <button class="tab-btn ${tab==='products'?'active':''}" style="${tab==='products'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'products'})">产品方案${sp.products?` (${sp.products.length})`:''}</button>
+      <button class="tab-btn ${tab==='chat'?'active':''}" style="${tab==='chat'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'chat'})">AI顾问</button>
+      <button class="tab-btn ${tab==='quickq'?'active':''}" style="${tab==='quickq'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'quickq'})">快捷问题</button>
+    </div>
+  </div>`;
+  let contentHTML='';
+  if(tab==='products'){
+    contentHTML=`<div id="products-tab"><div class="products-header">PRODUCT INNOVATION · ${sp.chinese} · ${sp.products?sp.products.length:0}项方案</div>${(sp.products||[]).map(p=>productCardHTML(p,sp)).join('')}</div>`;
+  }else if(tab==='chat'){
+    let msgsHTML='';
+    if(msgs.length===0){
+      msgsHTML=`<div class="chat-empty"><div class="chat-empty-glyph" style="color:${sp.accent}">${sp.glyph}</div><div class="chat-empty-title" style="color:${sp.accent}">${sp.chinese}专项AI顾问</div><div class="chat-empty-sub">从「产品方案」点击工艺步骤→AI落地方案，或切换「快捷问题」</div></div>`;
+    }else{
+      msgsHTML=msgs.map(m=>`<div class="msg-row ${m.role}"><div class="msg-avatar" style="background:${m.role==='user'?sp.color+'22':'rgba(255,255,255,.05)'};border:1px solid ${m.role==='user'?sp.color+'44':'rgba(255,255,255,.08)'};color:${m.role==='user'?sp.accent:'rgba(255,255,255,.4)'}">${m.role==='user'?'You':sp.glyph}</div><div class="msg-bubble ${m.role}" style="${m.role==='user'?`background:${sp.color}18;border:1px solid ${sp.color}33`:''}">${escapeHTML(m.content)}</div></div>`).join('');
+      if(loading){msgsHTML+=`<div class="msg-row"><div class="msg-avatar" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:${sp.accent}">${sp.glyph}</div><div class="msg-bubble bot" style="padding:10px 14px"><div class="typing-dots">${[0,1,2].map(i=>`<div class="typing-dot" style="background:${sp.accent};animation:dot 1.2s ${i*.2}s infinite"></div>`).join('')}</div></div></div>`;}
+    }
+    contentHTML=`<div id="chat-tab"><div class="chat-messages" id="chat-msgs">${msgsHTML}</div><div class="chat-input-bar"><textarea class="chat-input" id="chat-input" placeholder="询问${sp.chinese}工艺细节、配方参数、市场策略…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea><button class="send-btn" style="background:${sp.color}30;border:1px solid ${sp.color}66;color:${sp.accent}" onclick="sendChat()">发送 →</button></div></div>`;
+  }else if(tab==='quickq'){
+    const qs=[`${sp.chinese}最优先落地的产品是哪个？给出6个月具体行动计划`,`${sp.chinese}核心提取工艺参数如何优化，提升收率和纯度`,`${sp.chinese}NMPA/FDA注册最快路径和所需资料清单`,`${sp.chinese}定价策略与主要竞品差异化分析`,`${sp.chinese}专利布局优先级与PCT申请策略`,`${sp.chinese}冷域溯源品牌如何量化差异化溢价`];
+    contentHTML=`<div id="quickq-tab"><div class="qq-title">QUICK QUERIES · 点击直接发送</div>${qs.map(q=>`<button class="qq-btn" onclick="askAI('${q.replace(/'/g,"\\'")}')"><span class="qq-arrow" style="color:${sp.accent}">→</span>${q}</button>`).join('')}</div>`;
+  }
+  return headerHTML+contentHTML;
+}
+
+function productCardHTML(p,sp){
+  const isOpen=state.openProduct===p.id;
+  let html=`<div class="product-card ${isOpen?'open':''}" style="border-color:${isOpen?sp.color+'55':'rgba(255,255,255,0.07)'}">
+    <div class="product-header" onclick="toggleProduct('${p.id}')">
+      <div class="product-glyph" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap"><span class="product-name">${p.name}</span>${productTierBadge(p.tier)}</div><div class="product-meta"><span style="color:rgba(255,255,255,0.38)">${p.category}</span><span style="color:${sp.accent}">⏱ ${p.readiness}</span><span style="color:#34d399">¥ ${p.revenue}</span></div><div class="product-desc">${p.desc}</div></div>
+      <span class="product-arrow" style="color:${isOpen?sp.accent:'rgba(255,255,255,0.18)'};transform:${isOpen?'rotate(90deg)':'none'}">›</span>
+    </div>`;
+  if(isOpen){
+    html+=`<div class="product-body">
+      <div class="process-title">工艺流程 — 点击步骤查看详情</div>
+      <div class="process-steps">${p.process.map((s,i)=>{const isSel=state.selStep===`${p.id}-${i}`;return`<span class="step-btn ${isSel?'sel':''}" style="${isSel?`border-color:${sp.color}88;background:${sp.color}18;color:${sp.accent}`:''}" onclick="toggleStep('${p.id}',${i})"><span class="step-num" style="color:${sp.accent}">${i+1}</span>${s.s}</span>${i<p.process.length-1?'<span class="step-arrow">→</span>':''}`}).join('')}</div>
+      ${state.selStep&&state.selStep.startsWith(p.id)?`<div class="step-detail" style="background:${sp.color}10;border:1px solid ${sp.color}33"><span class="step-detail-label" style="color:${sp.accent}">STEP ${Number(state.selStep.split('-')[1])+1} · ${p.process[Number(state.selStep.split('-')[1])].s}</span>${p.process[Number(state.selStep.split('-')[1])].d}</div>`:''}
+      <div class="market-grid">
+        <div class="market-box" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.14)"><div class="market-box-title" style="color:#34d399">市场渠道</div>${p.market.channels.map(c=>`<div class="market-item"><span class="market-dot" style="color:#34d399">·</span>${c}</div>`).join('')}</div>
+        <div class="market-right">
+          <div class="market-mini" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.14)"><div class="market-mini-title" style="color:#fbbf24">定价策略</div><div class="market-mini-text">${p.market.pricing}</div></div>
+          <div class="market-mini" style="background:rgba(168,200,232,0.04);border:1px solid rgba(168,200,232,0.11)"><div class="market-mini-title" style="color:#a8c8e8">时间线</div><div class="market-mini-text">${p.market.timeline}</div></div>
+          <div class="market-mini" style="background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.11)"><div class="market-mini-title" style="color:#a78bfa">护城河</div>${p.market.moat.map(m=>`<div class="market-item" style="margin-bottom:3px"><span class="moat-dot" style="color:#a78bfa">◆</span>${m}</div>`).join('')}</div>
+        </div>
+      </div>
+      <button class="ai-cta" style="background:${sp.color}20;border:1px solid ${sp.color}55;color:${sp.accent}" onclick="askAI('请为「${p.name}」制定完整落地方案：1.启动资金预算拆解 2.前6个月行动清单 3.关键技术风险及解决方案 4.融资/合作策略')">✦ AI制定完整落地方案 →</button>
+    </div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function toggleProduct(id){setState({openProduct:state.openProduct===id?null:id,selStep:null});}
+function toggleStep(pid,idx){const key=`${pid}-${idx}`;setState({selStep:state.selStep===key?null:key});}
+function sendChat(){const el=document.getElementById('chat-input');if(el)askAI(el.value);}
+function escapeHTML(str){return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderHeader(){
+  const bc=document.getElementById('breadcrumb');
+  const qs=document.getElementById('quick-switch');
+  const hint=document.getElementById('header-hint');
+  if(state.view==='engine'&&state.activeSp){
+    const sp=DB[state.activeSp];
+    bc.style.display='flex';
+    bc.innerHTML=`<span class="sep">/</span><span class="home" onclick="goHub()">物种数据库</span><span class="sep">/</span><span style="color:${sp.accent};font-family:monospace;font-size:9px">${sp.chinese}</span>`;
+    qs.style.display='flex';
+    qs.innerHTML=Object.values(DB).map(s=>`<button class="qs-btn" title="${s.chinese}" onclick="goEngine('${s.id}')" style="border-color:${state.activeSp===s.id?s.color+'88':'rgba(255,255,255,0.07)'};background:${state.activeSp===s.id?s.color+'22':'rgba(255,255,255,0.03)'};color:${state.activeSp===s.id?s.accent:'rgba(255,255,255,0.23)'}">${s.glyph}</button>`).join('');
+    hint.style.display='none';
+  }else{
+    bc.style.display='none';
+    qs.style.display='none';
+    hint.style.display='block';
+  }
+}
+
+function render(){
+  renderHeader();
+  const hub=document.getElementById('hub');
+  const eng=document.getElementById('engine');
+  if(state.view==='hub'){
+    hub.style.display='block';
+    eng.style.display='none';
+    hub.innerHTML=renderHub();
+  }else{
+    hub.style.display='none';
+    eng.style.display='flex';
+    eng.innerHTML=renderEngine();
+    const cm=document.getElementById('chat-msgs');
+    if(cm)cm.scrollTop=cm.scrollHeight;
+    const ci=document.getElementById('chat-input');
+    if(ci)ci.focus();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
