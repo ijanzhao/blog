@@ -1,0 +1,17 @@
+name: Prevent Supabase Inactivity
+on:
+  schedule:
+    - cron: '0 0 * * 1,4'
+  workflow_dispatch:
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping main project
+        run: |
+          curl -i -X GET "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" || true
+      - name: Ping secondary project
+        run: |
+          curl -i -X GET "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" || true
