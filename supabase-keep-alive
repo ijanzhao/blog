@@ -1,0 +1,19 @@
+name: Prevent Supabase Inactivity
+on:
+  schedule:
+    - cron: '0 0 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping main project
+        run: |
+          curl -i -X GET "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/" \
+          -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdGRlaHlwc2JrYnlyYXNkYnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTE2OTYsImV4cCI6MjA5MTYyNzY5Nn0.c1CQyofm8R6V6kR4_lAIBrDaCVI-WuLONWyFaF32odc" || true
+
+      - name: Ping secondary project
+        run: |
+          curl -i -X GET "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/" \
+          -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI" || true
