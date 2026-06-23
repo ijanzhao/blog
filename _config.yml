@@ -1,6 +1,0 @@
-title: IJAN Research Blog
-url: "https://ijan.app"
-baseurl: ""
-theme: minima
-plugins:
-  - jekyll-feed
