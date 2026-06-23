@@ -1,0 +1,22 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'
+  workflow_dispatch: {}
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping ijan.app
+        run: |
+          curl -sS -f "${{ secrets.IJAN_APP_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.IJAN_APP_ANON_KEY }}" \
+            || echo "ijan.app ping failed"
+
+      - name: Ping ijanzhao-app
+        run: |
+          curl -sS -f "${{ secrets.IJANZHAO_APP_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.IJANZHAO_APP_ANON_KEY }}" \
+            || echo "ijanzhao-app ping failed"
