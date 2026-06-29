@@ -11,12 +11,22 @@ jobs:
     steps:
       - name: Ping ijan.app
         run: |
-          curl -sS -f "${{ secrets.IJAN_APP_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.IJAN_APP_ANON_KEY }}" \
-            || echo "ijan.app ping failed"
+          STATUS=$(curl -sS -o /tmp/resp.json -w "%{http_code}" \
+            "${{ secrets.IJAN_APP_URL }}/rest/v1/_keep_alive_heartbeat?select=id&limit=1" \
+            -H "apikey: ${{ secrets.IJAN_APP_ANON_KEY }}")
+          echo "HTTP status: $STATUS"; cat /tmp/resp.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::ijan.app ping failed with status $STATUS"
+            exit 1
+          fi
 
       - name: Ping ijanzhao-app
         run: |
-          curl -sS -f "${{ secrets.IJANZHAO_APP_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.IJANZHAO_APP_ANON_KEY }}" \
-            || echo "ijanzhao-app ping failed"
+          STATUS=$(curl -sS -o /tmp/resp2.json -w "%{http_code}" \
+            "${{ secrets.IJANZHAO_APP_URL }}/rest/v1/_keep_alive_heartbeat?select=id&limit=1" \
+            -H "apikey: ${{ secrets.IJANZHAO_APP_ANON_KEY }}")
+          echo "HTTP status: $STATUS"; cat /tmp/resp2.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "::error::ijanzhao-app ping failed with status $STATUS"
+            exit 1
+          fi
