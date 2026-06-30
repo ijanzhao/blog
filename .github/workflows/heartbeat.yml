@@ -1,0 +1,26 @@
+name: Heartbeat
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping ijan.app
+        run: |
+          curl -sf \
+            "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?select=id&limit=1" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdGRlaHlwc2JrYnlyYXNkYnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTE2OTYsImV4cCI6MjA5MTYyNzY5Nn0.c1CQyofm8R6V6kR4_lAIBrDaCVI-WuLONWyFaF32odc" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdGRlaHlwc2JrYnlyYXNkYnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTE2OTYsImV4cCI6MjA5MTYyNzY5Nn0.c1CQyofm8R6V6kR4_lAIBrDaCVI-WuLONWyFaF32odc" \
+            && echo "ijan.app OK" || echo "ijan.app FAILED"
+
+      - name: Ping ijanzhao-app
+        run: |
+          curl -sf \
+            "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?select=id&limit=1" \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnY2lib2x3bXdvdHN5bWhndGpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNjQxNzMsImV4cCI6MjA5MjY0MDE3M30.-PLwiIxO2_Cq0LjoRmn50_P6Ro-iMk4RqE31Zx0I_CI" \
+            && echo "ijanzhao-app OK" || echo "ijanzhao-app FAILED"
