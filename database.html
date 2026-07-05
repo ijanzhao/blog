@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>冷域本草 · 研发智库</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#07090d;font-family:Georgia,'Times New Roman',serif;color:#e8eaf0}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#07090d}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+button{cursor:pointer;outline:none;font-family:inherit}input,textarea{outline:none;font-family:inherit}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-up{animation:fadeUp .35s both}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#header{padding:11px 22px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,9,13,.95);backdrop-filter:blur(12px);display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:100;position:sticky;top:0}
+#logo{display:flex;align-items:center;gap:8px;cursor:pointer}
+#logo-icon{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,rgba(100,200,120,.16),rgba(60,120,180,.16));border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px}
+#logo-text-main{font-size:12px;font-weight:500;color:#c8d8e8;letter-spacing:2px}
+#logo-text-sub{font-size:7px;color:rgba(200,216,232,.25);letter-spacing:3px;font-family:monospace}
+#breadcrumb{display:flex;align-items:center;gap:5px;margin-left:6px;font-size:9px;font-family:monospace}
+#breadcrumb span.sep{color:rgba(255,255,255,.15)}
+#breadcrumb span.home{color:rgba(255,255,255,.28);cursor:pointer}
+#quick-switch{margin-left:auto;display:flex;gap:3px}
+.qs-btn{width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);font-size:9px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#hub{flex:1;overflow-y:auto;padding:18px 22px}
+#engine{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat-card{padding:10px 12px;border-radius:7px;text-align:center;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06)}
+.stat-val{font-size:16px;font-weight:600;font-family:monospace}
+.stat-lbl{font-size:8px;color:rgba(255,255,255,.26);font-family:monospace;margin-top:2px}
+.toolbar{display:flex;gap:7px;margin-bottom:14px;align-items:center;flex-wrap:wrap;position:relative}
+.search-wrap{position:relative;flex:1 1 170px}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(255,255,255,.28);pointer-events:none}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.25);cursor:pointer;padding:2px 4px}
+.search-input{width:100%;padding:6px 28px 6px 26px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#e8eaf0;font-size:11px;transition:border-color .2s}
+.search-input:focus{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+.view-toggle{display:flex;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.view-btn{padding:5px 11px;font-size:10px;border:none;background:transparent;color:rgba(255,255,255,.3);font-family:monospace}
+.view-btn.active{background:rgba(255,255,255,.1);color:#e8eaf0}
+.ctrl-btn{padding:4px 9px;border-radius:4px;font-size:9px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.3);font-family:monospace}
+.hub-count{margin-left:auto;font-size:8px;color:rgba(255,255,255,.16);font-family:monospace}
+/* Search Results Panel */
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#0d1117;border:1px solid rgba(255,255,255,.12);border-radius:8px;z-index:200;max-height:400px;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.sr-section{padding:8px 12px 4px}
+.sr-title{font-size:8px;font-family:monospace;letter-spacing:2px;color:rgba(255,255,255,.25);margin-bottom:6px}
+.sr-item{padding:7px 10px;border-radius:5px;cursor:pointer;transition:background .15s;display:flex;align-items:flex-start;gap:8px}
+.sr-item:hover{background:rgba(255,255,255,.06)}
+.sr-item-name{font-size:11px;color:#e8eaf0}
+.sr-item-sub{font-size:9px;color:rgba(255,255,255,.28);font-style:italic;margin-top:2px}
+.sr-item-tag{font-size:8px;font-family:monospace;padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0}
+.sr-empty{padding:16px 12px;text-align:center;font-size:10px;color:rgba(255,255,255,.2);font-family:monospace}
+.sr-divider{height:1px;background:rgba(255,255,255,.05);margin:4px 0}
+/* Track Groups */
+.track-group{border-radius:10px;overflow:hidden;margin-bottom:9px;transition:all .25s}
+.track-header{padding:12px 18px;display:flex;align-items:center;gap:11px;cursor:pointer}
+.track-icon-box{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.track-label{font-size:13px;font-weight:500;letter-spacing:1px}
+.track-en{font-size:8px;color:rgba(255,255,255,.2);font-family:monospace;letter-spacing:2px;margin-left:6px}
+.track-desc{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+.track-badges{display:flex;align-items:center;gap:6px;margin-left:auto}
+.track-glyph-mini{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.track-count-badge{padding:1px 6px;border-radius:10px;font-size:8px;font-family:monospace}
+.track-arrow{font-size:12px;transition:transform .2s;display:inline-block}
+.track-body{padding:7px 11px;display:flex;flex-direction:column;gap:5px}
+.compact-card{display:grid;grid-template-columns:32px 1fr 40px 88px 14px;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.015);transition:all .2s}
+.compact-card:hover{transform:translateX(3px)}
+.sp-glyph-box{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.sp-name{font-size:13px;color:#e8eaf0;font-weight:500;margin-bottom:3px}
+.sp-latin{font-size:8px;color:rgba(255,255,255,.24);font-style:italic;font-family:monospace}
+.sp-tier-badge{padding:1px 5px;border-radius:3px;font-size:7px;font-family:monospace;margin-left:5px}
+.compound-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.ctag{padding:1px 5px;border-radius:3px;font-size:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.08)}
+.trl-num{font-size:13px;font-weight:600;font-family:monospace;text-align:center}
+.trl-lbl{font-size:7px;color:rgba(255,255,255,.25);font-family:monospace;text-align:center}
+.score-pair{display:flex;gap:6px}
+.score-box{text-align:center}
+.score-lbl{font-size:7px;color:rgba(255,255,255,.25);font-family:monospace}
+.card-arrow{font-size:12px;color:rgba(255,255,255,.13);font-family:monospace;transition:all .2s}
+.compact-card:hover .card-arrow{transform:translateX(3px)}
+.flat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.flat-card{padding:16px;border-radius:9px;cursor:pointer;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);transition:all .22s}
+.flat-card:hover{transform:translateY(-2px)}
+/* Engine */
+.engine-header{padding:11px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:11px;flex-shrink:0}
+.back-btn{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;display:flex;align-items:center;justify-content:center}
+.engine-glyph{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.engine-name{font-size:13px;font-weight:500;letter-spacing:1px}
+.engine-latin{font-size:8px;color:rgba(255,255,255,.22);font-style:italic;font-family:monospace}
+.tab-bar{margin-left:auto;display:flex;gap:4px}
+.tab-btn{padding:4px 10px;border-radius:4px;font-size:10px;font-family:monospace;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.3);transition:all .2s}
+.tab-btn.active{color:#e8eaf0}
+#products-tab{flex:1;overflow-y:auto;padding:16px 20px}
+.products-header{font-size:9px;color:rgba(255,255,255,.24);font-family:monospace;letter-spacing:2px;margin-bottom:12px}
+.product-card{border-radius:10px;overflow:hidden;margin-bottom:10px;transition:all .25s;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}
+.product-card.open{background:rgba(0,0,0,.2)}
+.product-header{padding:14px 17px;cursor:pointer;display:flex;align-items:flex-start;gap:11px}
+.product-glyph{width:32px;height:32px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.product-name{font-size:13px;color:#e8eaf0;font-weight:500;margin-bottom:4px}
+.product-meta{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+.product-meta span{font-size:9px;font-family:monospace}
+.product-desc{font-size:11px;color:rgba(232,234,240,.5);line-height:1.65}
+.product-tier{padding:1px 7px;border-radius:3px;font-size:8px;font-family:monospace}
+.product-arrow{font-size:12px;flex-shrink:0;margin-top:2px;transition:transform .2s;display:inline-block}
+.product-body{border-top:1px solid rgba(255,255,255,.06);padding:4px 17px 15px}
+.process-title{font-size:9px;color:rgba(255,255,255,.26);font-family:monospace;letter-spacing:2px;margin:13px 0 8px}
+.process-steps{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.step-btn{padding:5px 9px;border-radius:5px;font-size:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:rgba(232,234,240,.6);cursor:pointer;transition:all .18s;margin-bottom:4px;display:flex;align-items:center;gap:3px}
+.step-btn.sel{color:#e8eaf0}
+.step-num{font-size:8px;font-family:monospace;min-width:11px}
+.step-arrow{color:rgba(255,255,255,.12);font-size:10px;margin:0 1px 4px}
+.step-detail{margin-top:8px;padding:9px 12px;border-radius:7px;font-size:11px;color:rgba(232,234,240,.82);line-height:1.7;animation:fadeUp .2s both}
+.step-detail-label{font-family:monospace;font-size:8px;margin-right:7px}
+.market-grid{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.market-box{padding:10px 12px;border-radius:7px}
+.market-box-title{font-size:9px;font-family:monospace;letter-spacing:1px;margin-bottom:6px}
+.market-item{display:flex;gap:5px;margin-bottom:4px;align-items:flex-start;font-size:10px;color:rgba(232,234,240,.6);line-height:1.5}
+.market-dot{font-size:11px;flex-shrink:0}
+.moat-dot{font-size:8px;flex-shrink:0;margin-top:2px}
+.market-right{display:flex;flex-direction:column;gap:7px}
+.market-mini{padding:8px 12px;border-radius:7px}
+.market-mini-title{font-size:9px;font-family:monospace;letter-spacing:1px;margin-bottom:3px}
+.market-mini-text{font-size:10px;color:rgba(232,234,240,.6);line-height:1.5}
+.ai-cta{margin-top:11px;padding:7px 15px;border-radius:5px;width:100%;font-size:10px;font-family:monospace}
+#chat-tab{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px}
+.chat-empty{text-align:center;padding-top:42px;opacity:.46}
+.chat-empty-glyph{font-size:28px;margin-bottom:8px}
+.chat-empty-title{font-size:12px;letter-spacing:2px}
+.chat-empty-sub{font-size:9px;color:rgba(255,255,255,.23);margin-top:4px}
+.msg-row{margin-bottom:13px;display:flex;gap:8px;align-items:flex-start}
+.msg-row.user{flex-direction:row-reverse}
+.msg-avatar{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-family:monospace}
+.msg-bubble{max-width:82%;padding:9px 12px;font-size:12px;line-height:1.85;white-space:pre-wrap;color:rgba(232,234,240,.85)}
+.msg-bubble.user{border-radius:9px 3px 9px 9px}
+.msg-bubble.bot{border-radius:3px 9px 9px 9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.typing-dots{display:flex;gap:4px;align-items:center}
+.typing-dot{width:5px;height:5px;border-radius:50%}
+.chat-input-bar{padding:10px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;gap:7px;flex-shrink:0}
+.chat-input{flex:1;padding:7px 11px;height:38px;resize:none;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#e8eaf0;font-size:11px}
+.send-btn{padding:0 13px;border-radius:6px;font-size:10px;font-family:monospace;white-space:nowrap}
+#quickq-tab{flex:1;overflow-y:auto;padding:16px 20px}
+.qq-title{font-size:9px;color:rgba(255,255,255,.24);font-family:monospace;letter-spacing:2px;margin-bottom:12px}
+.qq-btn{padding:10px 14px;border-radius:7px;text-align:left;width:100%;margin-bottom:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);color:rgba(232,234,240,.62);font-size:11px;line-height:1.5;transition:all .2s}
+.qq-arrow{font-size:9px;margin-right:7px}
+.loading-center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;opacity:.4}
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.5);border-radius:50%;animation:spin 0.8s linear infinite}
+.loading-text{font-size:10px;font-family:monospace;color:rgba(255,255,255,.3);letter-spacing:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="logo" onclick="goHub()">
+      <div id="logo-icon">⬡</div>
+      <div>
+        <div id="logo-text-main">冷域本草 · 研发智库</div>
+        <div id="logo-text-sub">COLD-DOMAIN BOTANICS · R&D INTELLIGENCE · PRODUCT · PROCESS · MARKET</div>
+      </div>
+    </div>
+    <div id="breadcrumb" style="display:none"></div>
+    <div id="quick-switch" style="display:none"></div>
+    <div id="header-hint" style="margin-left:auto;font-size:8px;color:rgba(255,255,255,.15);font-family:monospace">产品方案 · 工艺流程 · 市场投放 · AI顾问</div>
+  </div>
+  <div id="main">
+    <div id="hub"></div>
+    <div id="engine" style="display:none"></div>
+  </div>
+</div>
+<script>
+// ─── Config ──────────────────────────────────────────────────
+const TRACKS = [
+  { id:'anticancer', label:'抗肿瘤', en:'ONCOLOGY', icon:'⚗', color:'#b45309', accent:'#fbbf24', desc:'先导化合物·衍生物库·IND申报·原料药CDMO', members:[] },
+  { id:'skin', label:'皮肤修复 & 美白', en:'DERM / COSMECEUTICAL', icon:'✦', color:'#be185d', accent:'#fb7185', desc:'透皮制剂·Franz Cell·化妆品备案·美白原料B2B·医疗器械创伤敷料', members:[] },
+  { id:'eye', label:'眼部护理', en:'OPHTHALMIC', icon:'◎', color:'#0f766e', accent:'#2dd4bf', desc:'无菌滴眼液·II类医疗器械·Aucubin抗炎', members:[] },
+  { id:'nutraceutical', label:'功能食品 & 植物原料', en:'NUTRACEUTICAL', icon:'◆', color:'#166534', accent:'#4ade80', desc:'蓝帽注册·Q-marker·冷域溯源·全球三轨认证', members:[] },
+];
+const TIER_C = { '旗舰':'#f59e0b', '战略':'#a78bfa', '快变':'#34d399', '探索':'#94a3b8' };
+
+// ─── Runtime ──────────────────────────────────────────────────
+let DB = {};
+let STATS = { species:0, products:0, steps:0, tracks:4 };
+let SEARCH_TIMER = null;
+let state = {
+  view:'hub', activeSp:null, hubView:'grouped',
+  expanded:{ anticancer:true, skin:true, eye:true, nutraceutical:true },
+  search:'', searchResults:null, searchLoading:false,
+  tab:'products', openProduct:null, selStep:null,
+  msgs:[], loading:false, dataLoading:true,
+};
+function setState(p){ Object.assign(state, p); render(); }
+
+// ─── API Layer (Vercel proxy → Supabase, bypasses GFW) ────────
+async function apiFetch(path) {
+  const r = await fetch('/api/db/' + path);
+  if (!r.ok) throw new Error(r.status + ' ' + path);
+  return r.json();
+}
+
+// ─── Data Init ────────────────────────────────────────────────
+async function initData() {
+  document.getElementById('hub').innerHTML =
+    '<div class="loading-center"><div class="spinner"></div><div class="loading-text">正在连接研发智库…</div></div>';
+  try {
+    const [{ meta, comp }, stats] = await Promise.all([
+      apiFetch('species'),
+      apiFetch('stats').catch(() => ({ species:0, products:0, steps:0, tracks:4 }))
+    ]);
+    // Build compound map
+    const compMap = {};
+    (comp||[]).forEach(r => {
+      if (!r.species_id || !r.compounds) return;
+      if (!compMap[r.species_id]) compMap[r.species_id] = [];
+      const n = r.compounds.name || '';
+      if (n && compMap[r.species_id].length < 4) compMap[r.species_id].push(n);
+    });
+    // Build DB
+    DB = {};
+    (meta||[]).forEach(m => {
+      if (!m.species) return;
+      const sid = m.species.id;
+      DB[sid] = {
+        id: sid, latin: m.species.name_latin, chinese: m.species.name_zh,
+        alias: m.alias || '', color: m.color || '#6b7280', accent: m.accent || '#9ca3af',
+        glyph: m.glyph || '⬡', tag: m.tag || '', tier: m.tier || '战略',
+        summary: m.summary || '', keyCompounds: compMap[sid] || [],
+        trl: m.trl || 5, innovScore: m.innov_score || 80, marketScore: m.market_score || 80,
+        sysPrompt: m.sys_prompt || '', trackId: m.track_id || '',
+        products: null,
+      };
+    });
+    TRACKS.forEach(t => { t.members = Object.values(DB).filter(sp=>sp.trackId===t.id).map(sp=>sp.id); });
+    STATS = { species: stats.species || Object.keys(DB).length, products: stats.products || 0, steps: stats.steps || 0, tracks: 4 };
+    state.dataLoading = false;
+    render();
+  } catch(e) {
+    document.getElementById('hub').innerHTML =
+      `<div class="loading-center"><div style="font-size:22px">⚠️</div><div class="loading-text">连接失败，请刷新重试</div><div style="font-size:9px;font-family:monospace;color:rgba(255,255,255,.15);margin-top:4px">${e.message}</div></div>`;
+  }
+}
+
+// ─── Lazy Load Products ───────────────────────────────────────
+async function loadProducts(sid) {
+  if (DB[sid]?.products !== null) return;
+  const rows = await apiFetch(`species/${sid}`);
+  DB[sid].products = (rows||[]).map(p => ({
+    id: p.id, tier: p.tier, name: p.name, category: p.category||'',
+    readiness: p.readiness||'', revenue: p.revenue||'', desc: p.description||'',
+    market: { channels: p.market_channels||[], pricing: p.market_pricing||'', timeline: p.market_timeline||'', moat: p.market_moat||[] },
+    process: (p.process_steps||[]).sort((a,b)=>a.step_order-b.step_order).map(s=>({s:s.step_name, d:s.step_detail||''})),
+  }));
+}
+
+// ─── Search ───────────────────────────────────────────────────
+async function doSearch(q) {
+  if (!q.trim()) { setState({ searchResults:null, searchLoading:false }); return; }
+  setState({ searchLoading:true });
+  try {
+    const r = await apiFetch('search?q=' + encodeURIComponent(q));
+    setState({ searchResults: r, searchLoading:false });
+  } catch(e) { setState({ searchResults:{ error:e.message }, searchLoading:false }); }
+}
+
+function onSearchInput(val) {
+  setState({ search: val });
+  clearTimeout(SEARCH_TIMER);
+  if (!val.trim()) { setState({ searchResults:null }); return; }
+  setState({ searchLoading:true });
+  SEARCH_TIMER = setTimeout(() => doSearch(val), 400);
+}
+
+// ─── Navigation ───────────────────────────────────────────────
+function goHub() { setState({ view:'hub', activeSp:null, msgs:[], tab:'products', openProduct:null, selStep:null, searchResults:null }); }
+async function goEngine(id) {
+  state.view='engine'; state.activeSp=id; state.msgs=[]; state.tab='products'; state.openProduct=null; state.selStep=null; state.searchResults=null;
+  render();
+  await loadProducts(id);
+  render();
+}
+
+// ─── AI ───────────────────────────────────────────────────────
+async function askAI(text) {
+  if (!text.trim() || state.loading) return;
+  const sp = DB[state.activeSp];
+  const newMsgs = [...state.msgs, {role:'user',content:text}];
+  setState({ msgs:newMsgs, loading:true, tab:'chat' });
+  try {
+    const res = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:sp.sysPrompt, messages:newMsgs })
+    });
+    const data = await res.json();
+    const reply = (data.content?.find(b=>b.type==='text')||{}).text || '无法获取回复';
+    setState({ msgs:[...newMsgs,{role:'assistant',content:reply}], loading:false });
+  } catch(e) { setState({ msgs:[...newMsgs,{role:'assistant',content:'⚠️ API调用失败，请检查网络'}], loading:false }); }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function eAttr(s){ return (s||'').replace(/'/g,"\\'").replace(/\n/g,' '); }
+function scoreHTML(val,color,label){
+  const r=17,circ=2*Math.PI*r,dash=(val/100)*circ;
+  return `<div class="score-box"><svg width="38" height="38" style="transform:rotate(-90deg)"><circle cx="19" cy="19" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/><circle cx="19" cy="19" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/><text x="19" y="19" text-anchor="middle" dominant-baseline="middle" style="transform:rotate(90deg);transform-origin:19px 19px;font-size:9px;fill:${color};font-family:monospace;font-weight:700">${val}</text></svg><div class="score-lbl">${label}</div></div>`;
+}
+function tierBadge(t){ const c=TIER_C[t]||'#94a3b8'; return `<span class="sp-tier-badge" style="background:${c}20;color:${c};border:1px solid ${c}44">${t}</span>`; }
+function ptBadge(t){ const c=TIER_C[t]||'#94a3b8'; return `<span class="product-tier" style="background:${c}22;color:${c};border:1px solid ${c}44">${t}</span>`; }
+
+// ─── Hub Render ───────────────────────────────────────────────
+function renderSearchResults() {
+  const r = state.searchResults;
+  if (state.searchLoading) return `<div class="search-results"><div class="sr-empty">🔍 搜索中…</div></div>`;
+  if (!r) return '';
+  if (r.error) return `<div class="search-results"><div class="sr-empty">搜索失败: ${r.error}</div></div>`;
+
+  const sps = r.species || [];
+  const cps = r.compounds || [];
+  const docs = r.documents || [];
+  const metas = r.metaMatches || [];
+
+  // Merge species results with metaMatches
+  const allSpIds = new Set(sps.map(s=>s.id));
+  metas.forEach(m => { if (m.species && !allSpIds.has(m.species.id)) sps.push(m.species); });
+
+  if (!sps.length && !cps.length && !docs.length) return `<div class="search-results"><div class="sr-empty">未找到相关结果 · No results found</div></div>`;
+
+  let html = '<div class="search-results">';
+  if (sps.length) {
+    html += `<div class="sr-section"><div class="sr-title">SPECIES · 物种 (${sps.length})</div>`;
+    sps.slice(0,6).forEach(s => {
+      const sp = Object.values(DB).find(d=>d.id===s.id);
+      const color = sp?.color||'#6b7280', accent = sp?.accent||'#9ca3af', glyph = sp?.glyph||'⬡';
+      html += `<div class="sr-item" onclick="goEngine('${s.id}')">
+        <div style="width:20px;height:20px;border-radius:4px;background:${color}22;border:1px solid ${color}44;color:${accent};font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${glyph}</div>
+        <div><div class="sr-item-name">${esc(s.name_zh||'')}</div><div class="sr-item-sub">${esc(s.name_latin||'')}</div></div>
+        ${sp?`<span class="sr-item-tag" style="background:${color}20;color:${accent};border:1px solid ${color}33">${sp.tier}</span>`:''}
+      </div>`;
+    });
+    html += '</div>';
+  }
+  if (cps.length) {
+    if (sps.length) html += '<div class="sr-divider"></div>';
+    html += `<div class="sr-section"><div class="sr-title">COMPOUNDS · 化合物 (${cps.length})</div>`;
+    cps.slice(0,5).forEach(c => {
+      html += `<div class="sr-item"><div style="width:20px;height:20px;border-radius:4px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;font-size:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">◉</div>
+        <div><div class="sr-item-name">${esc(c.name)}</div><div class="sr-item-sub">${esc(c.type||'')}</div></div></div>`;
+    });
+    html += '</div>';
+  }
+  if (docs.length) {
+    if (sps.length||cps.length) html += '<div class="sr-divider"></div>';
+    html += `<div class="sr-section"><div class="sr-title">DOCUMENTS · 文献 (${docs.length})</div>`;
+    docs.slice(0,4).forEach(d => {
+      html += `<div class="sr-item"><div style="width:20px;height:20px;border-radius:4px;background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.25);color:#2dd4bf;font-size:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">📄</div>
+        <div><div class="sr-item-name" style="font-size:10px">${esc(d.title||'')}</div></div></div>`;
+    });
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+
+function renderHub() {
+  if (state.dataLoading) return '<div class="loading-center"><div class="spinner"></div><div class="loading-text">正在连接研发智库…</div></div>';
+  const { hubView, expanded, search } = state;
+  const all = Object.values(DB).filter(sp => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return sp.chinese.includes(q)||sp.latin.toLowerCase().includes(q)||(sp.alias||'').toLowerCase().includes(q)||sp.keyCompounds.some(c=>c.toLowerCase().includes(q))||(sp.tag||'').toLowerCase().includes(q);
+  });
+
+  let html = `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" style="color:#e8eaf0">${STATS.species}种</div><div class="stat-lbl">收录物种</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#fbbf24">${STATS.products}项</div><div class="stat-lbl">产品方案</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#34d399">${STATS.steps}步</div><div class="stat-lbl">工艺步骤</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#a78bfa">${STATS.tracks}条</div><div class="stat-lbl">研发赛道</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="hub-search" placeholder="搜索物种、成分、功效… / Search species, compounds…"
+        value="${eAttr(search)}" oninput="onSearchInput(this.value)" autocomplete="off"/>
+      ${search ? `<span class="search-clear" onclick="onSearchInput('');document.getElementById('hub-search').value=''">✕</span>` : ''}
+    </div>
+    ${!state.searchResults ? `<div class="view-toggle">
+      <button class="view-btn ${hubView==='grouped'?'active':''}" onclick="setState({hubView:'grouped'})">赛道分组</button>
+      <button class="view-btn ${hubView==='all'?'active':''}" onclick="setState({hubView:'all'})">全部平铺</button>
+    </div>` : ''}
+    ${hubView==='grouped'&&!state.searchResults ? `<button class="ctrl-btn" onclick="setState({expanded:{anticancer:true,skin:true,eye:true,nutraceutical:true}})">全展开</button><button class="ctrl-btn" onclick="setState({expanded:{anticancer:false,skin:false,eye:false,nutraceutical:false}})">全折叠</button>` : ''}
+    <span class="hub-count">${all.length}/${Object.keys(DB).length}</span>
+    ${renderSearchResults()}
+  </div>`;
+
+  if (state.searchResults) return html; // show only search panel
+
+  if (hubView === 'grouped') {
+    TRACKS.forEach(track => {
+      const members = track.members.map(id=>DB[id]).filter(sp=>{
+        if(!sp||!search) return !!sp;
+        const q=search.toLowerCase();
+        return sp.chinese.includes(q)||sp.latin.toLowerCase().includes(q)||(sp.alias||'').toLowerCase().includes(q)||sp.keyCompounds.some(c=>c.toLowerCase().includes(q));
+      });
+      if (!members.length) return;
+      const isOpen = !!expanded[track.id];
+      html += `<div class="track-group fade-up" style="border:1px solid ${isOpen?track.color+'44':'rgba(255,255,255,0.07)'};background:${isOpen?track.color+'06':'rgba(255,255,255,0.015)'}">
+        <div class="track-header" onclick="toggleTrack('${track.id}')">
+          <div class="track-icon-box" style="background:${track.color}22;border:1px solid ${track.color}44;color:${track.accent}">${track.icon}</div>
+          <div style="flex:1"><div style="display:flex;align-items:center"><span class="track-label" style="color:${track.accent}">${track.label}</span><span class="track-en">${track.en}</span></div><div class="track-desc">${track.desc}</div></div>
+          <div class="track-badges"><div style="display:flex;gap:3px">${members.map(sp=>`<div class="track-glyph-mini" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>`).join('')}</div><span class="track-count-badge" style="background:${track.color}22;color:${track.accent};border:1px solid ${track.color}44">${members.length}种</span><span class="track-arrow" style="color:${isOpen?track.accent:'rgba(255,255,255,0.17)'};transform:${isOpen?'rotate(90deg)':'none'}">›</span></div>
+        </div>
+        ${isOpen?`<div class="track-body">${members.map(sp=>cardHTML(sp)).join('')}</div>`:''}
+      </div>`;
+    });
+  } else {
+    html += `<div class="flat-grid">${all.map(sp=>flatHTML(sp)).join('')}</div>`;
+  }
+  return html;
+}
+
+function cardHTML(sp) {
+  return `<div class="compact-card" onclick="goEngine('${sp.id}')" onmouseover="this.style.borderColor='${sp.color}66';this.style.background='${sp.color}0e'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.background='rgba(255,255,255,0.015)'">
+    <div class="sp-glyph-box" style="background:${sp.color}20;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+    <div><div style="display:flex;align-items:baseline"><span class="sp-name">${sp.chinese}</span><span class="sp-latin" style="margin-left:6px">${sp.latin}</span>${tierBadge(sp.tier)}</div>
+    <div class="compound-tags">${sp.keyCompounds.slice(0,4).map(c=>`<span class="ctag">${c}</span>`).join('')}</div></div>
+    <div><div class="trl-num" style="color:${sp.accent}">${sp.trl}<span style="font-size:7px;color:rgba(255,255,255,0.28)">/9</span></div><div class="trl-lbl">TRL</div></div>
+    <div class="score-pair">${scoreHTML(sp.innovScore,sp.accent,'创新')}${scoreHTML(sp.marketScore,sp.color,'市场')}</div>
+    <span class="card-arrow">→</span>
+  </div>`;
+}
+
+function flatHTML(sp) {
+  return `<div class="flat-card" onclick="goEngine('${sp.id}')" onmouseover="this.style.borderColor='${sp.color}55';this.style.background='${sp.color}0d';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.02)';this.style.transform='none'">
+    <div style="display:flex;justify-content:space-between;margin-bottom:9px"><div style="display:flex;align-items:center;gap:8px"><div class="sp-glyph-box" style="background:${sp.color}20;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div><div><div class="sp-name">${sp.chinese}</div><div class="sp-latin">${sp.latin}</div></div></div>${tierBadge(sp.tier)}</div>
+    <p style="font-size:10px;color:rgba(232,234,240,0.48);line-height:1.6;margin-bottom:9px">${sp.summary}</p>
+    <div style="font-size:9px;color:${sp.accent};font-family:monospace;opacity:.6">${sp.products?sp.products.length+'项产品方案 →':'→'}</div>
+  </div>`;
+}
+
+function toggleTrack(id) { setState({ expanded:{...state.expanded,[id]:!state.expanded[id]} }); }
+
+// ─── Engine Render ────────────────────────────────────────────
+function renderEngine() {
+  const sp = DB[state.activeSp]; if (!sp) return '';
+  const { tab, msgs, loading } = state;
+  const pLoaded = sp.products !== null;
+  const pCount = pLoaded ? sp.products.length : '…';
+
+  let h = `<div class="engine-header" style="background:linear-gradient(135deg,${sp.color}18,transparent)">
+    <button class="back-btn" onclick="goHub()">←</button>
+    <div class="engine-glyph" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+    <div><div class="engine-name" style="color:${sp.accent}">${sp.chinese} · 研发产品引擎</div><div class="engine-latin">${sp.latin} · ${sp.alias}</div></div>
+    <div class="tab-bar">
+      <button class="tab-btn ${tab==='products'?'active':''}" style="${tab==='products'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'products'})">产品方案 (${pCount})</button>
+      <button class="tab-btn ${tab==='chat'?'active':''}" style="${tab==='chat'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'chat'})">AI顾问</button>
+      <button class="tab-btn ${tab==='quickq'?'active':''}" style="${tab==='quickq'?`border-color:${sp.color}88;background:${sp.color}22;color:${sp.accent}`:''}" onclick="setState({tab:'quickq'})">快捷问题</button>
+    </div>
+  </div>`;
+
+  let c = '';
+  if (tab === 'products') {
+    if (!pLoaded) { c = '<div class="loading-center"><div class="spinner"></div><div class="loading-text">加载产品方案…</div></div>'; }
+    else { c = `<div id="products-tab"><div class="products-header">PRODUCT INNOVATION · ${sp.chinese} · ${sp.products.length}项方案</div>${sp.products.map(p=>prodHTML(p,sp)).join('')}</div>`; }
+  } else if (tab === 'chat') {
+    let m = '';
+    if (!msgs.length) {
+      m = `<div class="chat-empty"><div class="chat-empty-glyph" style="color:${sp.accent}">${sp.glyph}</div><div class="chat-empty-title" style="color:${sp.accent}">${sp.chinese}专项AI顾问</div><div class="chat-empty-sub">基于 Supabase species_meta.sys_prompt 动态上下文 · 点击快捷问题直接发送</div></div>`;
+    } else {
+      m = msgs.map(msg=>`<div class="msg-row ${msg.role}"><div class="msg-avatar" style="background:${msg.role==='user'?sp.color+'22':'rgba(255,255,255,.05)'};border:1px solid ${msg.role==='user'?sp.color+'44':'rgba(255,255,255,.08)'};color:${msg.role==='user'?sp.accent:'rgba(255,255,255,.4)'}">${msg.role==='user'?'You':sp.glyph}</div><div class="msg-bubble ${msg.role}" style="${msg.role==='user'?`background:${sp.color}18;border:1px solid ${sp.color}33`:''}">${esc(msg.content)}</div></div>`).join('');
+      if (loading) m+=`<div class="msg-row"><div class="msg-avatar" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:${sp.accent}">${sp.glyph}</div><div class="msg-bubble bot" style="padding:10px 14px"><div class="typing-dots">${[0,1,2].map(i=>`<div class="typing-dot" style="background:${sp.accent};animation:dot 1.2s ${i*.2}s infinite"></div>`).join('')}</div></div></div>`;
+    }
+    c = `<div id="chat-tab"><div class="chat-messages" id="chat-msgs">${m}</div><div class="chat-input-bar"><textarea class="chat-input" id="chat-input" placeholder="询问${sp.chinese}工艺细节、配方参数、市场策略…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea><button class="send-btn" style="background:${sp.color}30;border:1px solid ${sp.color}66;color:${sp.accent}" onclick="sendChat()">发送 →</button></div></div>`;
+  } else if (tab === 'quickq') {
+    const qs = [`${sp.chinese}最优先落地的产品是哪个？给出6个月具体行动计划`,`${sp.chinese}核心提取工艺参数如何优化，提升收率和纯度`,`${sp.chinese}NMPA/FDA注册最快路径和所需资料清单`,`${sp.chinese}定价策略与主要竞品差异化分析`,`${sp.chinese}专利布局优先级与PCT申请策略`,`${sp.chinese}冷域溯源品牌如何量化差异化溢价`];
+    c = `<div id="quickq-tab"><div class="qq-title">QUICK QUERIES · 点击直接发送至AI顾问</div>${qs.map(q=>`<button class="qq-btn" onclick="askAI('${eAttr(q)}')"><span class="qq-arrow" style="color:${sp.accent}">→</span>${q}</button>`).join('')}</div>`;
+  }
+  return h + c;
+}
+
+function prodHTML(p, sp) {
+  const isOpen = state.openProduct === p.id;
+  let h = `<div class="product-card ${isOpen?'open':''}" style="border-color:${isOpen?sp.color+'55':'rgba(255,255,255,0.07)'}">
+    <div class="product-header" onclick="toggleProduct('${p.id}')">
+      <div class="product-glyph" style="background:${sp.color}22;border:1px solid ${sp.color}44;color:${sp.accent}">${sp.glyph}</div>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap"><span class="product-name">${p.name}</span>${ptBadge(p.tier)}</div>
+      <div class="product-meta"><span style="color:rgba(255,255,255,0.38)">${p.category}</span><span style="color:${sp.accent}">⏱ ${p.readiness}</span><span style="color:#34d399">${p.revenue}</span></div>
+      <div class="product-desc">${p.desc}</div></div>
+      <span class="product-arrow" style="color:${isOpen?sp.accent:'rgba(255,255,255,0.18)'};transform:${isOpen?'rotate(90deg)':'none'}">›</span>
+    </div>`;
+  if (isOpen) {
+    h += `<div class="product-body"><div class="process-title">工艺流程 — 点击步骤查看详情</div>
+      <div class="process-steps">${p.process.map((s,i)=>{const k=`${p.id}-${i}`,sel=state.selStep===k;return`<span class="step-btn ${sel?'sel':''}" style="${sel?`border-color:${sp.color}88;background:${sp.color}18;color:${sp.accent}`:''}" onclick="toggleStep('${p.id}',${i})"><span class="step-num" style="color:${sp.accent}">${i+1}</span>${s.s}</span>${i<p.process.length-1?'<span class="step-arrow">→</span>':''}`;}).join('')}</div>
+      ${state.selStep&&state.selStep.startsWith(p.id)?`<div class="step-detail" style="background:${sp.color}10;border:1px solid ${sp.color}33"><span class="step-detail-label" style="color:${sp.accent}">STEP ${Number(state.selStep.split('-').pop())+1} · ${p.process[Number(state.selStep.split('-').pop())].s}</span>${p.process[Number(state.selStep.split('-').pop())].d}</div>`:''}
+      <div class="market-grid">
+        <div class="market-box" style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.14)"><div class="market-box-title" style="color:#34d399">市场渠道</div>${p.market.channels.map(c=>`<div class="market-item"><span class="market-dot" style="color:#34d399">·</span>${c}</div>`).join('')}</div>
+        <div class="market-right">
+          <div class="market-mini" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.14)"><div class="market-mini-title" style="color:#fbbf24">定价策略</div><div class="market-mini-text">${p.market.pricing}</div></div>
+          <div class="market-mini" style="background:rgba(168,200,232,0.04);border:1px solid rgba(168,200,232,0.11)"><div class="market-mini-title" style="color:#a8c8e8">时间线</div><div class="market-mini-text">${p.market.timeline}</div></div>
+          <div class="market-mini" style="background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.11)"><div class="market-mini-title" style="color:#a78bfa">护城河</div>${p.market.moat.map(m=>`<div class="market-item" style="margin-bottom:3px"><span class="moat-dot" style="color:#a78bfa">◆</span>${m}</div>`).join('')}</div>
+        </div>
+      </div>
+      <button class="ai-cta" style="background:${sp.color}20;border:1px solid ${sp.color}55;color:${sp.accent}" onclick="askAI('请为「${eAttr(p.name)}」制定完整落地方案：1.启动资金预算拆解 2.前6个月行动清单 3.关键技术风险及解决方案 4.融资/合作策略')">✦ AI制定完整落地方案 →</button>
+    </div>`;
+  }
+  return h + '</div>';
+}
+
+function toggleProduct(id) { setState({ openProduct:state.openProduct===id?null:id, selStep:null }); }
+function toggleStep(pid,idx) { const k=`${pid}-${idx}`; setState({ selStep:state.selStep===k?null:k }); }
+function sendChat() { const el=document.getElementById('chat-input'); if(el){askAI(el.value);el.value='';} }
+
+// ─── Header ───────────────────────────────────────────────────
+function renderHeader() {
+  const bc=document.getElementById('breadcrumb'),qs=document.getElementById('quick-switch'),hint=document.getElementById('header-hint');
+  if (state.view==='engine'&&state.activeSp&&DB[state.activeSp]) {
+    const sp=DB[state.activeSp];
+    bc.style.display='flex'; bc.innerHTML=`<span class="sep">/</span><span class="home" onclick="goHub()">物种数据库</span><span class="sep">/</span><span style="color:${sp.accent};font-family:monospace;font-size:9px">${sp.chinese}</span>`;
+    qs.style.display='flex'; qs.innerHTML=Object.values(DB).map(s=>`<button class="qs-btn" title="${s.chinese}" onclick="goEngine('${s.id}')" style="border-color:${state.activeSp===s.id?s.color+'88':'rgba(255,255,255,0.07)'};background:${state.activeSp===s.id?s.color+'22':'rgba(255,255,255,0.03)'};color:${state.activeSp===s.id?s.accent:'rgba(255,255,255,0.23)'}">${s.glyph}</button>`).join('');
+    hint.style.display='none';
+  } else { bc.style.display='none'; qs.style.display='none'; hint.style.display='block'; }
+}
+
+// ─── Render ───────────────────────────────────────────────────
+function render() {
+  renderHeader();
+  const hub=document.getElementById('hub'), eng=document.getElementById('engine');
+  if (state.view==='hub') {
+    hub.style.display='block'; eng.style.display='none'; hub.innerHTML=renderHub();
+    const si=document.getElementById('hub-search'); if(si&&document.activeElement!==si) si.value=state.search;
+  } else {
+    hub.style.display='none'; eng.style.display='flex'; eng.innerHTML=renderEngine();
+    const cm=document.getElementById('chat-msgs'); if(cm) cm.scrollTop=cm.scrollHeight;
+    const ci=document.getElementById('chat-input'); if(ci) ci.focus();
+  }
+}
+
+// ─── Boot ────────────────────────────────────────────────────
+initData();
+</script>
+</body>
+</html>
