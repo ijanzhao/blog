@@ -47,12 +47,10 @@ export async function GET(
       .order('sort_order', { ascending: true })
 
     return NextResponse.json({
-      data: {
-        ...species,
-        compounds: compoundLinks?.map((c: any) => c.compounds) ?? [],
-        effects: effectLinks?.map((e: any) => e.effects) ?? [],
-        products: products ?? [],
-      },
+      ...species,
+      compounds: compoundLinks?.map((c: any) => c.compounds) ?? [],
+      effects: effectLinks?.map((e: any) => e.effects) ?? [],
+      products: products ?? [],
     })
   } catch (err) {
     return NextResponse.json(
