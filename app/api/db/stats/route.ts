@@ -19,13 +19,11 @@ export async function GET() {
     ])
 
     return NextResponse.json({
-      data: {
-        species: species.count ?? 0,
-        compounds: compounds.count ?? 0,
-        effects: effects.count ?? 0,
-        products: products.count ?? 0,
-        research_records: research.count ?? 0,
-      },
+      species: species.count ?? 0,
+      compounds: compounds.count ?? 0,
+      effects: effects.count ?? 0,
+      products: products.count ?? 0,
+      research_records: research.count ?? 0,
     })
   } catch (err) {
     return NextResponse.json(
