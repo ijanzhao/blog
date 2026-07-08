@@ -30,27 +30,37 @@ export async function GET(
       return NextResponse.json({ error: speciesError.message }, { status: 404 })
     }
 
-    const { data: compoundLinks } = await supabase
-      .from('species_compounds')
-      .select('compounds ( id, name, type, description )')
-      .eq('species_id', id)
-
-    const { data: effectLinks } = await supabase
-      .from('species_effects')
-      .select('effects ( id, name, description )')
-      .eq('species_id', id)
-
     const { data: products } = await supabase
       .from('products')
       .select('*')
       .eq('species_id', id)
       .order('sort_order', { ascending: true })
 
+    const productIds = (products ?? []).map((p: any) => p.id)
+
+    let processSteps: any[] = []
+    if (productIds.length > 0) {
+      const { data: steps } = await supabase
+        .from('process_steps')
+        .select('step_order, step_name, step_detail, product_id')
+        .in('product_id', productIds)
+        .order('step_order', { ascending: true })
+
+      processSteps = (steps ?? []).map((s: any) => ({
+        step_number: s.step_order,
+        title: s.step_name,
+        detail: s.step_detail,
+      }))
+    }
+
     return NextResponse.json({
-      ...species,
-      compounds: compoundLinks?.map((c: any) => c.compounds) ?? [],
-      effects: effectLinks?.map((e: any) => e.effects) ?? [],
+      id: species.id,
+      name: species.name_zh,
+      latin_name: species.name_latin,
+      description: species.description,
+      meta: species.species_meta ? [species.species_meta] : [],
       products: products ?? [],
+      process_steps: processSteps,
     })
   } catch (err) {
     return NextResponse.json(
