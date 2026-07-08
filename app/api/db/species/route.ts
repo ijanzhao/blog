@@ -1,39 +1,48 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic';
-
-function getSupabaseClient() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    throw new Error('Supabase 环境变量未在当前环境配置中找到。');
-  }
-
-  return createClient(url, key);
-}
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    )
 
-    const { data, error } = await supabase
+    const { data: species, error } = await supabase
       .from('species')
       .select(`
         id,
-        name,
-        latin_name,
-        common_name,
-        meta:species_meta(glyph, color, tier, trl, scores, sys_prompt)
-      `);
+        name_zh,
+        name_latin,
+        description,
+        created_at,
+        species_meta (
+          glyph,
+          color,
+          accent,
+          tier,
+          tag,
+          alias,
+          summary,
+          trl,
+          innov_score,
+          market_score,
+          track_id
+        )
+      `)
+      .order('created_at', { ascending: false })
 
-    if (error) throw error;
-    
-    return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ data: species })
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }
