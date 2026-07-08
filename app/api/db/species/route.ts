@@ -19,17 +19,8 @@ export async function GET() {
         description,
         created_at,
         species_meta (
-          glyph,
-          color,
-          accent,
-          tier,
-          tag,
-          alias,
-          summary,
-          trl,
-          innov_score,
-          market_score,
-          track_id
+          glyph, color, accent, tier, tag, alias, summary,
+          trl, innov_score, market_score, track_id
         )
       `)
       .order('created_at', { ascending: false })
