@@ -36,7 +36,12 @@ export async function GET(request: Request) {
     ])
 
     return NextResponse.json({
-      species: speciesRes.data ?? [],
+      species: (speciesRes.data ?? []).map((s: any) => ({
+        id: s.id,
+        name: s.name_zh,
+        latin_name: s.name_latin,
+        description: s.description,
+      })),
       compounds: compoundsRes.data ?? [],
       effects: effectsRes.data ?? [],
     })
