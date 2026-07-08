@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const q = searchParams.get('q')?.trim()
 
     if (!q) {
-      return NextResponse.json({ data: { species: [], compounds: [], effects: [] } })
+      return NextResponse.json({ species: [], compounds: [], effects: [] })
     }
 
     const supabase = createClient(
@@ -36,11 +36,9 @@ export async function GET(request: Request) {
     ])
 
     return NextResponse.json({
-      data: {
-        species: speciesRes.data ?? [],
-        compounds: compoundsRes.data ?? [],
-        effects: effectsRes.data ?? [],
-      },
+      species: speciesRes.data ?? [],
+      compounds: compoundsRes.data ?? [],
+      effects: effectsRes.data ?? [],
     })
   } catch (err) {
     return NextResponse.json(
