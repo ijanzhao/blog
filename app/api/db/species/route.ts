@@ -29,7 +29,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ data: species })
+    return NextResponse.json(species)
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
