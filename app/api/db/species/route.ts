@@ -29,7 +29,15 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(species)
+    const formatted = (species ?? []).map((s: any) => ({
+      id: s.id,
+      name: s.name_zh,
+      latin_name: s.name_latin,
+      description: s.description,
+      meta: s.species_meta ? [s.species_meta] : [],
+    }))
+
+    return NextResponse.json(formatted)
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
