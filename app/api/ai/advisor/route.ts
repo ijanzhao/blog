@@ -1,0 +1,132 @@
+import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function POST(request: Request) {
+  try {
+    const { question } = await request.json()
+
+    if (!question || typeof question !== 'string') {
+      return NextResponse.json({ error: '缺少问题内容' }, { status: 400 })
+    }
+
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    )
+
+    // 用问题里的关键词做一次轻量检索，把匹配到的物种/成分/功效作为上下文喂给模型
+    const q = question.trim()
+    const [speciesRes, compoundsRes, effectsRes] = await Promise.all([
+      supabase
+        .from('species')
+        .select(`
+          name_zh, name_latin, description,
+          species_meta ( summary, trl, innov_score, market_score, track_id, tag )
+        `)
+        .or(`name_zh.ilike.%${q}%,name_latin.ilike.%${q}%,description.ilike.%${q}%`)
+        .limit(6),
+      supabase
+        .from('compounds')
+        .select('name, type, description')
+        .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+        .limit(6),
+      supabase
+        .from('effects')
+        .select('name, description')
+        .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+        .limit(6),
+    ])
+
+    // 如果关键词检索没命中，退化为拉取创新分/市场分排名靠前的物种做通用背景
+    let fallbackSpecies: any[] = []
+    if (!speciesRes.data?.length) {
+      const { data } = await supabase
+        .from('species')
+        .select(`
+          name_zh, name_latin,
+          species_meta ( summary, trl, innov_score, market_score, track_id )
+        `)
+        .limit(10)
+      fallbackSpecies = data ?? []
+    }
+
+    const contextParts: string[] = []
+
+    const speciesForContext = speciesRes.data?.length ? speciesRes.data : fallbackSpecies
+    if (speciesForContext?.length) {
+      contextParts.push(
+        '相关物种：\n' +
+          speciesForContext
+            .map((s: any) => {
+              const m = Array.isArray(s.species_meta) ? s.species_meta[0] : s.species_meta
+              return `- ${s.name_zh}（${s.name_latin}）：${m?.summary || s.description || '暂无摘要'} [创新分${m?.innov_score ?? '-'} / 市场分${m?.market_score ?? '-'} / TRL${m?.trl ?? '-'}]`
+            })
+            .join('\n')
+      )
+    }
+
+    if (compoundsRes.data?.length) {
+      contextParts.push(
+        '相关化合物：\n' +
+          compoundsRes.data.map((c: any) => `- ${c.name}（${c.type || '未分类'}）：${c.description || '暂无描述'}`).join('\n')
+      )
+    }
+
+    if (effectsRes.data?.length) {
+      contextParts.push(
+        '相关功效：\n' + effectsRes.data.map((e: any) => `- ${e.name}：${e.description || '暂无描述'}`).join('\n')
+      )
+    }
+
+    const context = contextParts.length
+      ? contextParts.join('\n\n')
+      : '数据库中未检索到与问题直接相关的记录，请基于常识谨慎作答，并提醒用户这不是数据库内的确定信息。'
+
+    const systemPrompt = `你是"冷域本草 · 研发智库"平台的研发顾问，服务对象是天然产物研发人员。
+请只依据下面提供的数据库上下文回答问题，保持专业、简洁、可执行。
+如果上下文没有覆盖问题，请明确说明"数据库中暂无相关记录"，不要编造具体数值或研究结论。
+回答用中文，控制在200字以内，可以用短句或要点列出。
+
+数据库上下文：
+${context}`
+
+    const apiKey = process.env.DEEPSEEK_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: 'DEEPSEEK_API_KEY 未配置' }, { status: 500 })
+    }
+
+    const dsRes = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: q },
+        ],
+        temperature: 0.4,
+        max_tokens: 500,
+      }),
+    })
+
+    if (!dsRes.ok) {
+      const errText = await dsRes.text()
+      return NextResponse.json({ error: `DeepSeek请求失败: ${errText}` }, { status: 502 })
+    }
+
+    const dsData = await dsRes.json()
+    const answer = dsData?.choices?.[0]?.message?.content?.trim() || '暂时无法生成回答，请稍后重试。'
+
+    return NextResponse.json({ answer })
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
+}
