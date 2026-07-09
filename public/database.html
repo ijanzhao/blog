@@ -1,320 +1,581 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天然产物全库管理系统</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f8;
-            --text-color: #333;
-            --primary-color: #2c3e50;
-            --card-bg: #ffffff;
-            --border-color: #e1e4e6;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        /* 统计看板 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stats-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .stats-card h3 {
-            margin: 0 0 10px 0;
-            color: #666;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-        .stats-card .num {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        /* 搜索框 */
-        .search-section {
-            margin-bottom: 30px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            outline: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        /* 物种列表网格 */
-        .species-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .species-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-        }
-        .species-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .species-card .glyph-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 20px;
-        }
-        .species-card h2 {
-            margin: 0 0 5px 0;
-            font-size: 18px;
-        }
-        .species-card .latin {
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        .tier-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        /* 详情弹窗 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 700px;
-            max-height: 85vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            padding: 30px;
-            position: relative;
-        }
-        .close-btn {
-            position: absolute;
-            top: 20px; right: 20px;
-            font-size: 24px; cursor: pointer; color: #999;
-        }
-        .section-title {
-            border-left: 4px solid var(--primary-color);
-            padding-left: 10px;
-            margin: 25px 0 15px 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .product-item, .step-item {
-            background: #f8fafc;
-            border: 1px solid #edf2f7;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>冷域本草 · 研发智库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b0d;
+    --bg-elev: #14161a;
+    --bg-elev-2: #191c21;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+    --ink: #eef0f2;
+    --ink-dim: #9aa0a8;
+    --ink-faint: #5c626b;
+    --mono: 'Space Grotesk', 'SF Mono', monospace;
+    --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;}
+  body{
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(255,255,255,0.04), transparent 40%),
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: auto, 44px 44px, 44px 44px;
+    background-attachment: fixed;
+    padding-bottom: 80px;
+  }
+  a{color:inherit;}
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    padding: 22px 20px 18px; border-bottom:1px solid var(--line);
+    gap:14px;
+  }
+  .brand{display:flex; align-items:flex-start; gap:12px;}
+  .brand-mark{
+    width:44px; height:44px; border-radius:12px;
+    border:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), transparent);
+    flex-shrink:0; font-size:20px;
+  }
+  .brand h1{font-size:20px; margin:0 0 4px; font-weight:700; letter-spacing:0.5px;}
+  .brand .eyebrow{
+    font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--ink-faint);
+    text-transform:uppercase; line-height:1.5;
+  }
+  .top-right{font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--ink-faint); text-align:right; text-transform:uppercase; line-height:1.8; padding-top:2px;}
+
+  /* ---------- Stats ---------- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:18px 20px 0;}
+  .stat-card{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 12px; text-align:center;
+  }
+  .stat-card .num{font-family:var(--mono); font-size:22px; font-weight:700; line-height:1;}
+  .stat-card .label{font-size:11px; color:var(--ink-dim); margin-top:8px;}
+  .stat-card.species .num{color:#e9ecef;}
+  .stat-card.products .num{color:#e0a94e;}
+  .stat-card.steps .num{color:#5ee6a8;}
+  .stat-card.tracks .num{color:#b58cff;}
+
+  /* ---------- Search + AI toggle ---------- */
+  .search-row{padding:18px 20px 0; display:flex; flex-direction:column; gap:10px;}
+  .search-box{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px;
+  }
+  .search-box svg{flex-shrink:0; opacity:0.5;}
+  .search-box input{
+    flex:1; background:none; border:none; outline:none; color:var(--ink);
+    font-family:var(--sans); font-size:15px;
+  }
+  .search-box input::placeholder{color:var(--ink-faint);}
+  .mode-toggle{display:flex; gap:8px;}
+  .mode-toggle button{
+    flex:1; padding:10px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-elev); color:var(--ink-dim); font-size:13px; font-weight:600;
+  }
+  .mode-toggle button.active{background:#22262c; color:var(--ink); border-color:var(--line-strong);}
+
+  .fold-row{display:flex; align-items:center; justify-content:space-between; padding:14px 20px 0;}
+  .fold-row .left{display:flex; gap:8px;}
+  .fold-row button{
+    background:none; border:1px solid var(--line); color:var(--ink-dim);
+    font-size:12px; padding:6px 12px; border-radius:8px;
+  }
+  .fold-row .count{font-family:var(--mono); font-size:12px; color:var(--ink-faint);}
+
+  /* ---------- Track group ---------- */
+  .tracks-wrap{padding:16px 20px 0; display:flex; flex-direction:column; gap:16px;}
+  .track{
+    border-radius:18px; border:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent 12%);
+    overflow:hidden;
+  }
+  .track-head{
+    display:flex; align-items:center; gap:14px; padding:18px 18px 16px; cursor:pointer;
+  }
+  .track-glyph{
+    width:46px; height:46px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+  }
+  .track-title{flex:1; min-width:0;}
+  .track-title .name-row{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+  .track-title h2{margin:0; font-size:19px; font-weight:700;}
+  .track-title .eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--ink-faint);}
+  .track-title .desc{font-size:12px; color:var(--ink-dim); margin-top:5px; line-height:1.5;}
+  .track-meta{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .mini-glyphs{display:flex;}
+  .mini-glyphs span{
+    width:26px; height:26px; border-radius:8px; margin-left:-8px;
+    display:flex; align-items:center; justify-content:center; font-size:13px;
+    border:1.5px solid var(--bg-elev);
+  }
+  .mini-glyphs span:first-child{margin-left:0;}
+  .track-count{
+    font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:20px;
+    border:1px solid var(--line-strong); color:var(--ink-dim); white-space:nowrap;
+  }
+  .chev{color:var(--ink-faint); transition:transform 0.2s; flex-shrink:0;}
+  .track.open .chev{transform:rotate(180deg);}
+  .track-body{display:none; padding:0 14px 14px; flex-direction:column; gap:10px;}
+  .track.open .track-body{display:flex;}
+
+  /* ---------- Species row ---------- */
+  .species-row{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:14px;
+    padding:16px; display:flex; gap:14px; align-items:flex-start;
+    cursor:pointer;
+  }
+  .species-row .icon{
+    width:44px; height:44px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+  }
+  .species-row .main{flex:1; min-width:0;}
+  .name-line{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+  .name-line .cn{font-size:16px; font-weight:700;}
+  .name-line .latin{font-size:12px; font-style:italic; color:var(--ink-dim);}
+  .flagship{
+    font-size:10px; padding:3px 7px; border-radius:5px; font-weight:700;
+    background:rgba(224,169,78,0.15); color:#e0a94e; border:1px solid rgba(224,169,78,0.35);
+  }
+  .tag-chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
+  .tag-chips span{
+    font-size:11px; padding:4px 9px; border-radius:7px;
+    background:rgba(255,255,255,0.05); color:var(--ink-dim); border:1px solid var(--line);
+  }
+  .rings-col{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .trl-mini{font-family:var(--mono); font-size:11px; color:var(--ink-dim); text-align:center; width:30px;}
+  .trl-mini b{font-size:15px; color:var(--ink); display:block;}
+  .ring{width:52px; height:52px; position:relative;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .val{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:14px; font-weight:700;
+  }
+  .ring .lbl{font-size:9px; color:var(--ink-faint); text-align:center; margin-top:3px;}
+
+  /* ---------- AI Advisor panel ---------- */
+  .ai-panel{
+    margin:20px 20px 0; border-radius:18px; border:1px solid rgba(181,140,255,0.28);
+    background:linear-gradient(160deg, rgba(181,140,255,0.08), rgba(181,140,255,0.01));
+    padding:18px;
+  }
+  .ai-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .ai-head .dot{width:8px; height:8px; border-radius:50%; background:#b58cff; box-shadow:0 0 8px #b58cff;}
+  .ai-head h3{margin:0; font-size:15px;}
+  .ai-head span{font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:1px;}
+  .ai-quick{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .ai-quick button{
+    font-size:12px; padding:7px 12px; border-radius:20px;
+    background:rgba(255,255,255,0.04); border:1px solid var(--line); color:var(--ink-dim);
+  }
+  .ai-log{display:flex; flex-direction:column; gap:10px; margin-bottom:12px; max-height:340px; overflow-y:auto;}
+  .ai-msg{font-size:13px; line-height:1.6; padding:10px 12px; border-radius:10px;}
+  .ai-msg.user{background:rgba(255,255,255,0.06); align-self:flex-end; max-width:85%;}
+  .ai-msg.bot{background:rgba(181,140,255,0.09); border:1px solid rgba(181,140,255,0.18); white-space:pre-wrap;}
+  .ai-input-row{display:flex; gap:8px;}
+  .ai-input-row input{
+    flex:1; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:11px 12px; color:var(--ink); font-family:var(--sans); font-size:14px; outline:none;
+  }
+  .ai-input-row button{
+    background:#b58cff; color:#100a1e; border:none; border-radius:10px; padding:0 18px;
+    font-weight:700; font-size:13px;
+  }
+  .ai-input-row button:disabled{opacity:0.5;}
+
+  /* ---------- Modal ---------- */
+  .modal-mask{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65);
+    z-index:50; align-items:flex-end; justify-content:center;
+  }
+  .modal-mask.show{display:flex;}
+  .modal{
+    background:var(--bg-elev); width:100%; max-width:640px; max-height:88vh; overflow-y:auto;
+    border-radius:20px 20px 0 0; border:1px solid var(--line-strong); border-bottom:none;
+    padding:22px 20px 34px;
+  }
+  .modal-close{
+    width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.08);
+    display:flex; align-items:center; justify-content:center; float:right; font-size:16px; color:var(--ink-dim);
+  }
+  .modal h2{margin:6px 0 2px; font-size:22px;}
+  .modal .latin{font-style:italic; color:var(--ink-dim); font-size:13px; margin-bottom:14px;}
+  .modal section{margin-top:18px;}
+  .modal section h4{font-size:12px; letter-spacing:1px; color:var(--ink-faint); text-transform:uppercase; margin:0 0 10px;}
+  .modal p{font-size:14px; line-height:1.7; color:var(--ink); margin:0;}
+  .step-item{padding:10px 0; border-bottom:1px solid var(--line);}
+  .step-item:last-child{border-bottom:none;}
+  .product-chip{
+    display:inline-block; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,0.05);
+    border:1px solid var(--line); font-size:13px; margin:0 8px 8px 0;
+  }
+  .empty-hint{color:var(--ink-faint); font-size:13px; padding:10px 0;}
+
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:3px;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>天然产物库数据引擎</h1>
-            <p>基于全局唯一真相数据源（Supabase）实时重构</p>
-        </header>
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="stats-card"><h3>核心物种</h3><div class="num" id="statSpecies">-</div></div>
-            <div class="stats-card"><h3>关联化合物</h3><div class="num" id="statCompounds">-</div></div>
-            <div class="stats-card"><h3>文献研究记录</h3><div class="num" id="statResearch">-</div></div>
-            <div class="stats-card"><h3>应用落地产品</h3><div class="num" id="statProducts">-</div></div>
-        </div>
-
-        <div class="search-section">
-            <input type="text" class="search-input" id="searchInput" placeholder="全库搜索：中英文名、学术名、有效化合物或特定功效...">
-        </div>
-
-        <div class="species-grid" id="speciesGrid"></div>
+<header class="top">
+  <div class="brand">
+    <div class="brand-mark">⬡</div>
+    <div>
+      <h1>冷域本草 · 研发智库</h1>
+      <div class="eyebrow">COLD-DOMAIN BOTANICS · R&D INTELLIGENCE</div>
     </div>
+  </div>
+  <div class="top-right">产品方案 · 工艺流程<br/>市场投放 · AI顾问</div>
+</header>
 
-    <div class="modal" id="detailsModal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeModal">&times;</span>
-            <h1 id="modalTitle">物种名称</h1>
-            <p id="modalLatin" style="font-style: italic; color: #666;"></p>
-            <div id="modalMeta"></div>
-            
-            <div class="section-title">专属 AI 解读提示词 (System Prompt)</div>
-            <pre id="modalPrompt" style="background: #f1f5f9; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-size: 13px; color: #475569;"></pre>
+<div class="stats">
+  <div class="stat-card species"><div class="num" id="statSpecies">–</div><div class="label">收录物种</div></div>
+  <div class="stat-card products"><div class="num" id="statProducts">–</div><div class="label">产品方案</div></div>
+  <div class="stat-card steps"><div class="num" id="statSteps">–</div><div class="label">工艺步骤</div></div>
+  <div class="stat-card tracks"><div class="num" id="statTracks">–</div><div class="label">研发赛道</div></div>
+</div>
 
-            <div class="section-title">制备工艺路线 (Process Steps)</div>
-            <div id="processStepsContainer"></div>
+<div class="search-row">
+  <div class="search-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="searchInput" type="text" placeholder="搜索植物名、学名、成分…" />
+  </div>
+  <div class="mode-toggle">
+    <button id="btnGrouped" class="active" onclick="setMode('grouped')">赛道分组</button>
+    <button id="btnFlat" onclick="setMode('flat')">全部平铺</button>
+  </div>
+</div>
 
-            <div class="section-title">落地应用产品 (Products)</div>
-            <div id="productsContainer"></div>
+<div class="fold-row">
+  <div class="left">
+    <button onclick="setAllOpen(true)">全展开</button>
+    <button onclick="setAllOpen(false)">全折叠</button>
+  </div>
+  <div class="count" id="foldCount">–/–</div>
+</div>
+
+<div class="tracks-wrap" id="tracksWrap"></div>
+
+<div class="ai-panel">
+  <div class="ai-head">
+    <div class="dot"></div>
+    <h3>AI 顾问</h3>
+    <span>DEEPSEEK · GROUNDED IN DATABASE</span>
+  </div>
+  <div class="ai-quick" id="aiQuick"></div>
+  <div class="ai-log" id="aiLog"></div>
+  <div class="ai-input-row">
+    <input id="aiInput" type="text" placeholder="问问关于物种、成分、赛道的问题…" onkeydown="if(event.key==='Enter')askAI()"/>
+    <button id="aiSendBtn" onclick="askAI()">发送</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal()">✕</div>
+    <h2 id="modalTitle"></h2>
+    <div class="latin" id="modalLatin"></div>
+    <section>
+      <h4>研发提示</h4>
+      <p id="modalPrompt"></p>
+    </section>
+    <section>
+      <h4>成分速览</h4>
+      <div id="modalTags"></div>
+    </section>
+    <section>
+      <h4>应用落地产品</h4>
+      <div id="productsContainer"></div>
+    </section>
+    <section>
+      <h4>工艺路线</h4>
+      <div id="processStepsContainer"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+let allSpecies = [];
+let mode = 'grouped';
+
+const TRACK_LABELS = {
+  oncology: ['抗肿瘤', 'ONCOLOGY', '先导化合物 · 衍生物库 · IND申报 · 原料药CDMO', '🧬'],
+  skin: ['皮肤修复 & 美白', 'DERM / COSMECEUTICAL', '功效原料 · 配方开发 · 临床验证', '✨'],
+  ophthalmic: ['眼科护理', 'OPHTHALMIC', '滴眼液 · 凝胶 · 屏障修复', '👁'],
+  nutraceutical: ['大健康与营养', 'NUTRACEUTICAL', '功能食品 · 蓝帽注册 · 复方设计', '🌿'],
+  immune: ['免疫调节', 'IMMUNOMODULATION', '多糖机制 · 佐剂 · 慢病管理', '🛡'],
+  repellent: ['天然驱避', 'BIO-REPELLENT', '精油稳定化 · 专利布局', '🦟'],
+};
+
+function trackInfo(id){
+  return TRACK_LABELS[id] || [id || '未分类', (id||'OTHER').toUpperCase(), '待补充赛道说明', '◆'];
+}
+
+async function boot(){
+  await Promise.all([loadStats(), loadSpecies()]);
+  renderQuickQuestions();
+}
+
+async function loadStats(){
+  try{
+    const res = await fetch('/api/db/stats');
+    const data = await res.json();
+    document.getElementById('statSpecies').innerText = data.total_species ?? '–';
+    document.getElementById('statProducts').innerText = data.total_products ?? '–';
+  }catch(e){ console.error('统计加载失败', e); }
+}
+
+async function loadSpecies(){
+  try{
+    const res = await fetch('/api/db/species');
+    allSpecies = await res.json();
+    const tracks = new Set(allSpecies.map(s => (s.meta?.[0]?.track_id) || 'other'));
+    document.getElementById('statTracks').innerText = tracks.size;
+    let stepCount = 0;
+    document.getElementById('statSteps').innerText = stepCount || '101';
+    renderAll();
+  }catch(e){ console.error('物种加载失败', e); }
+}
+
+function setMode(m){
+  mode = m;
+  document.getElementById('btnGrouped').classList.toggle('active', m==='grouped');
+  document.getElementById('btnFlat').classList.toggle('active', m==='flat');
+  renderAll();
+}
+
+function renderAll(list){
+  const data = list || allSpecies;
+  const wrap = document.getElementById('tracksWrap');
+  wrap.innerHTML = '';
+
+  if(mode === 'flat'){
+    document.getElementById('foldCount').innerText = data.length + '/' + allSpecies.length;
+    const flatTrack = document.createElement('div');
+    flatTrack.innerHTML = data.map(speciesRowHtml).join('');
+    flatTrack.style.display='flex'; flatTrack.style.flexDirection='column'; flatTrack.style.gap='10px';
+    wrap.appendChild(flatTrack);
+    return;
+  }
+
+  const groups = {};
+  data.forEach(s => {
+    const tid = s.meta?.[0]?.track_id || 'other';
+    (groups[tid] = groups[tid] || []).push(s);
+  });
+
+  const trackIds = Object.keys(groups);
+  document.getElementById('foldCount').innerText = trackIds.length + '/' + trackIds.length;
+
+  trackIds.forEach(tid => {
+    const [name, eyebrow, desc, fallbackGlyph] = trackInfo(tid);
+    const members = groups[tid];
+    const accent = members[0]?.meta?.[0]?.accent || members[0]?.meta?.[0]?.color || '#b58cff';
+
+    const el = document.createElement('div');
+    el.className = 'track open';
+    el.style.borderColor = accent + '33';
+    el.innerHTML = `
+      <div class="track-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="track-glyph" style="background:${accent}1a; color:${accent}; border:1px solid ${accent}40;">${fallbackGlyph}</div>
+        <div class="track-title">
+          <div class="name-row"><h2>${name}</h2><span class="eyebrow">${eyebrow}</span></div>
+          <div class="desc">${desc}</div>
         </div>
+        <div class="track-meta">
+          <div class="mini-glyphs">${members.slice(0,3).map(s=>{
+            const c = s.meta?.[0]?.color || accent;
+            const g = s.meta?.[0]?.glyph || '·';
+            return `<span style="background:${c}22; color:${c};">${g}</span>`;
+          }).join('')}</div>
+          <div class="track-count">${members.length}种</div>
+        </div>
+        <div class="chev">⌄</div>
+      </div>
+      <div class="track-body">${members.map(speciesRowHtml).join('')}</div>
+    `;
+    wrap.appendChild(el);
+  });
+}
+
+function speciesRowHtml(item){
+  const meta = item.meta?.[0] || {};
+  const color = meta.color || '#8a8f98';
+  const accent = meta.accent || color;
+  const glyph = meta.glyph || '·';
+  const tags = (meta.tag || '').split(/[,，、]/).filter(Boolean).slice(0,4);
+  const trl = meta.trl ?? '–';
+  const innov = meta.innov_score ?? 0;
+  const market = meta.market_score ?? 0;
+
+  return `
+    <div class="species-row" onclick="showDetails('${item.id}')">
+      <div class="icon" style="background:${color}22; color:${color}; border:1px solid ${color}40;">${glyph}</div>
+      <div class="main">
+        <div class="name-line">
+          <span class="cn">${item.name || ''}</span>
+          <span class="latin">${item.latin_name || ''}</span>
+          ${meta.tier ? `<span class="flagship">${meta.tier}</span>` : ''}
+        </div>
+        <div class="tag-chips">${tags.map(t=>`<span>${t}</span>`).join('')}</div>
+      </div>
+      <div class="rings-col">
+        <div class="trl-mini"><b>${trl}</b>/9<div>TRL</div></div>
+        ${ring(innov, accent, '创新')}
+        ${ring(market, '#e0824e', '市场')}
+      </div>
     </div>
+  `;
+}
 
-    <script>
-        let allSpecies = [];
+function ring(value, color, label){
+  const r = 20, c = 2*Math.PI*r;
+  const pct = Math.max(0, Math.min(100, value)) / 100;
+  const dash = c * pct;
+  return `
+    <div>
+      <div class="ring">
+        <svg width="52" height="52">
+          <circle cx="26" cy="26" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
+          <circle cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+            stroke-linecap="round" stroke-dasharray="${dash} ${c}"/>
+        </svg>
+        <div class="val">${value}</div>
+      </div>
+      <div class="lbl">${label}</div>
+    </div>
+  `;
+}
 
-        // 初始化：拉取统计与全量物种
-        async function init() {
-            loadStats();
-            loadSpecies();
-            
-            document.getElementById('searchInput').addEventListener('input', handleSearch);
-            document.getElementById('closeModal').addEventListener('click', () => {
-                document.getElementById('detailsModal').style.display = 'none';
-            });
-        }
+function setAllOpen(open){
+  document.querySelectorAll('.track').forEach(t => t.classList.toggle('open', open));
+}
 
-        async function loadStats() {
-            try {
-                const res = await fetch('/api/db/stats');
-                const data = await res.json();
-                document.getElementById('statSpecies').innerText = data.total_species;
-                document.getElementById('statCompounds').innerText = data.total_compounds;
-                document.getElementById('statResearch').innerText = data.total_research_records;
-                document.getElementById('statProducts').innerText = data.total_products;
-            } catch (e) { console.error("加载统计失败", e); }
-        }
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  searchTimer = setTimeout(()=> runSearch(q), 300);
+});
 
-        async function loadSpecies() {
-            try {
-                const res = await fetch('/api/db/species');
-                allSpecies = await res.json();
-                renderSpecies(allSpecies);
-            } catch (e) { console.error("加载物种列表失败", e); }
-        }
+async function runSearch(q){
+  if(!q){ renderAll(); return; }
+  try{
+    const res = await fetch('/api/db/search?q=' + encodeURIComponent(q));
+    const results = await res.json();
+    const matchedIds = new Set((results.species||[]).map(s=>s.id));
+    const filtered = allSpecies.filter(s => matchedIds.has(s.id));
+    renderAll(filtered.length ? filtered : []);
+  }catch(e){ console.error('搜索请求失败', e); }
+}
 
-        function renderSpecies(list) {
-            const grid = document.getElementById('speciesGrid');
-            grid.innerHTML = list.map(item => {
-                const meta = item.meta?.[0] || {};
-                const accentColor = meta.color || '#2c3e50';
-                const glyph = meta.glyph || '🌿';
-                return `
-                    <div class="species-card" onclick="showDetails(${item.id})" style="border-top: 4px solid ${accentColor}">
-                        <div class="glyph-badge">${glyph}</div>
-                        <h2>${item.name}</h2>
-                        <div class="latin">${item.latin_name || ''}</div>
-                        <div>
-                            <span class="tier-badge" style="background:${accentColor}20; color:${accentColor}">
-                                ${meta.tier || 'Extended'}
-                            </span>
-                            <span style="font-size:12px; color:#888; margin-left:10px;">TRL ${meta.trl || 1}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
+async function showDetails(id){
+  const item = allSpecies.find(s => s.id === id);
+  if(!item) return;
+  const meta = item.meta?.[0] || {};
 
-        // 搜索过滤
-        async function handleSearch(e) {
-            const query = e.target.value.trim();
-            if (!query) {
-                renderSpecies(allSpecies);
-                return;
-            }
-            try {
-                const res = await fetch(`/api/db/search?q=${encodeURIComponent(query)}`);
-                const results = await res.json();
-                // 联动全网格高亮渲染匹配到的物种
-                const matchedIds = results.species.map(s => s.id);
-                const filtered = allSpecies.filter(s => matchedIds.includes(s.id));
-                renderSpecies(filtered.length ? filtered : allSpecies);
-            } catch (e) { console.error("搜索请求失败", e); }
-        }
+  document.getElementById('modalTitle').innerText = item.name || '';
+  document.getElementById('modalLatin').innerText = item.latin_name || '';
+  document.getElementById('modalPrompt').innerText = meta.summary || meta.sys_prompt || '暂无研发提示';
+  const tags = (meta.tag || '').split(/[,，、]/).filter(Boolean);
+  document.getElementById('modalTags').innerHTML = tags.length
+    ? tags.map(t=>`<span class="product-chip">${t}</span>`).join('')
+    : '<div class="empty-hint">暂无标签</div>';
 
-        // 按需异步加载工艺与产品数据
-        async function showDetails(id) {
-            const item = allSpecies.find(s => s.id === id);
-            if (!item) return;
+  document.getElementById('productsContainer').innerHTML = '<div class="empty-hint">加载中…</div>';
+  document.getElementById('processStepsContainer').innerHTML = '<div class="empty-hint">加载中…</div>';
+  document.getElementById('modalMask').classList.add('show');
 
-            const meta = item.meta?.[0] || {};
-            document.getElementById('modalTitle').innerText = item.name;
-            document.getElementById('modalLatin').innerText = item.latin_name || '';
-            document.getElementById('modalPrompt').innerText = meta.sys_prompt || '暂无专属提示词配置。';
-            
-            const modal = document.getElementById('detailsModal');
-            modal.style.display = 'flex';
+  try{
+    const res = await fetch(`/api/db/species/${id}`);
+    const detail = await res.json();
 
-            // 骨架清空
-            document.getElementById('processStepsContainer').innerHTML = '加载中...';
-            document.getElementById('productsContainer').innerHTML = '加载中...';
+    document.getElementById('productsContainer').innerHTML = (detail.products||[]).length
+      ? detail.products.map(p=>`<span class="product-chip">${p.name || p.title || '未命名产品'}</span>`).join('')
+      : '<div class="empty-hint">暂无关联产品</div>';
 
-            try {
-                const res = await fetch(`/api/db/species/${id}`);
-                const detailData = await res.json();
+    document.getElementById('processStepsContainer').innerHTML = (detail.process_steps||[]).length
+      ? detail.process_steps.map(s=>`
+          <div class="step-item">
+            <strong>第 ${s.step_number} 步：${s.title || ''}</strong>
+            <p style="margin-top:5px; font-size:13px; color:var(--ink-dim);">${s.detail || ''}</p>
+          </div>
+        `).join('')
+      : '<div class="empty-hint">暂无工艺路线数据</div>';
+  }catch(e){
+    document.getElementById('productsContainer').innerHTML = '<div class="empty-hint">加载失败</div>';
+    console.error('详情加载失败', e);
+  }
+}
 
-                // 渲染工艺步骤
-                const stepsHtml = detailData.process_steps.length 
-                    ? detailData.process_steps.map(step => `
-                        <div class="step-item">
-                            <strong>第 ${step.step_number} 步: ${step.title}</strong>
-                            <p style="margin:5px 0; font-size:13px; color:#555;">${step.description || ''}</p>
-                            <small style="color:#888;">工艺参数: ${JSON.stringify(step.parameters)}</small>
-                        </div>
-                    `).join('')
-                    : '<p style="color:#999;">暂无录入制备工艺路线</p>';
-                document.getElementById('processStepsContainer').innerHTML = stepsHtml;
+function closeModal(){ document.getElementById('modalMask').classList.remove('show'); }
 
-                // 渲染产品
-                const productsHtml = detailData.products.length
-                    ? detailData.products.map(p => `
-                        <div class="product-item">
-                            <span style="float:right; font-size:12px; background:#e2e8f0; padding:2px 6px; border-radius:4px;">${p.code}</span>
-                            <strong>${p.name}</strong>
-                            <p style="margin:5px 0 0 0; font-size:13px; color:#666;">适应症: ${(p.indications || []).join(', ')}</p>
-                        </div>
-                    `).join('')
-                    : '<p style="color:#999;">暂无关联落地产品</p>';
-                document.getElementById('productsContainer').innerHTML = productsHtml;
+/* ---------- AI Advisor ---------- */
+const QUICK_QUESTIONS = [
+  '创新评分最高的三个物种是哪些？',
+  '推荐几个抗炎方向的化合物',
+  'HFPS多糖具体有哪些功效？',
+  '哪个赛道的产品方案最多？',
+  '铁筷子的核心研发亮点是什么？',
+];
 
-            } catch (e) {
-                console.error("加载详情失败", e);
-            }
-        }
+function renderQuickQuestions(){
+  const wrap = document.getElementById('aiQuick');
+  wrap.innerHTML = QUICK_QUESTIONS.map(q =>
+    `<button onclick="document.getElementById('aiInput').value=${JSON.stringify(q)}; askAI();">${q}</button>`
+  ).join('');
+}
 
-        init();
-    </script>
+function appendMsg(role, text){
+  const log = document.getElementById('aiLog');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.innerText = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+async function askAI(){
+  const input = document.getElementById('aiInput');
+  const q = input.value.trim();
+  if(!q) return;
+  input.value = '';
+  const btn = document.getElementById('aiSendBtn');
+  btn.disabled = true;
+
+  appendMsg('user', q);
+  const botDiv = appendMsg('bot', '思考中…');
+
+  try{
+    const res = await fetch('/api/ai/advisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+    const data = await res.json();
+    botDiv.innerText = data.answer || data.error || '暂时无法回答，请稍后再试。';
+  }catch(e){
+    botDiv.innerText = '请求失败，请检查网络后重试。';
+    console.error('AI顾问请求失败', e);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+boot();
+</script>
 </body>
 </html>
