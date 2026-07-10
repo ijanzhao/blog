@@ -507,14 +507,7 @@ async function showDetails(id){
       ? detail.products.map(p=>`<span class="product-chip">${p.name || p.title || '未命名产品'}</span>`).join('')
       : '<div class="empty-hint">暂无关联产品</div>';
 
-    document.getElementById('processStepsContainer').innerHTML = (detail.process_steps||[]).length
-      ? detail.process_steps.map(s=>`
-          <div class="step-item">
-            <strong>第 ${s.step_number} 步：${s.title || ''}</strong>
-            <p style="margin-top:5px; font-size:13px; color:var(--ink-dim);">${s.detail || ''}</p>
-          </div>
-        `).join('')
-      : '<div class="empty-hint">暂无工艺路线数据</div>';
+    document.getElementById('processStepsContainer').innerHTML = renderProcessSteps(detail.products, detail.process_steps);
   }catch(e){
     document.getElementById('productsContainer').innerHTML = '<div class="empty-hint">加载失败</div>';
     console.error('详情加载失败', e);
@@ -522,6 +515,41 @@ async function showDetails(id){
 }
 
 function closeModal(){ document.getElementById('modalMask').classList.remove('show'); }
+
+function renderProcessSteps(products, steps){
+  if(!steps || !steps.length) return '<div class="empty-hint">暂无工艺路线数据</div>';
+
+  const productMap = {};
+  (products||[]).forEach(p => { productMap[p.id] = p.name || p.title || '未命名产品'; });
+
+  const grouped = {};
+  steps.forEach(s => {
+    const pid = s.product_id || '_ungrouped';
+    (grouped[pid] = grouped[pid] || []).push(s);
+  });
+
+  const groupIds = Object.keys(grouped);
+  const multiProduct = groupIds.filter(id => id !== '_ungrouped').length > 1;
+
+  return groupIds.map(pid => {
+    const stepsHtml = grouped[pid].map(s => `
+      <div class="step-item">
+        <strong>第 ${s.step_number} 步：${s.title || ''}</strong>
+        <p style="margin-top:5px; font-size:13px; color:var(--ink-dim);">${s.detail || ''}</p>
+      </div>
+    `).join('');
+
+    if(!multiProduct) return stepsHtml;
+
+    const label = productMap[pid] || '未分类工艺';
+    return `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px; color:#b58cff; font-weight:700; margin-bottom:6px;">${label}</div>
+        ${stepsHtml}
+      </div>
+    `;
+  }).join('');
+}
 
 /* ---------- AI Advisor ---------- */
 const QUICK_QUESTIONS = [
