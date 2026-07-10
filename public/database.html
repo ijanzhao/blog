@@ -274,6 +274,7 @@
     <h3>AI 顾问</h3>
     <span>DEEPSEEK · GROUNDED IN DATABASE</span>
   </div>
+  <div style="font-size:11px; color:var(--ink-faint); margin-bottom:8px; letter-spacing:1px;">快捷问题</div>
   <div class="ai-quick" id="aiQuick"></div>
   <div class="ai-log" id="aiLog"></div>
   <div class="ai-input-row">
@@ -533,9 +534,17 @@ const QUICK_QUESTIONS = [
 
 function renderQuickQuestions(){
   const wrap = document.getElementById('aiQuick');
-  wrap.innerHTML = QUICK_QUESTIONS.map(q =>
-    `<button onclick="document.getElementById('aiInput').value=${JSON.stringify(q)}; askAI();">${q}</button>`
-  ).join('');
+  wrap.innerHTML = '';
+  QUICK_QUESTIONS.forEach(q => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = q;
+    btn.addEventListener('click', () => {
+      document.getElementById('aiInput').value = q;
+      askAI();
+    });
+    wrap.appendChild(btn);
+  });
 }
 
 function appendMsg(role, text){
