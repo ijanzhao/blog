@@ -50,6 +50,7 @@ export async function GET(
         step_number: s.step_order,
         title: s.step_name,
         detail: s.step_detail,
+        product_id: s.product_id,
       }))
     }
 
