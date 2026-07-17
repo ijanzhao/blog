@@ -17,53 +17,54 @@ export async function POST(request: Request) {
     )
 
     const q = question.trim()
-    const [speciesRes, compoundsRes, effectsRes, documentsRes, timelineRes] = await Promise.all([
+
+    // 数据量不大，拉全量数据后在代码里判断"问题是否提到了这个名字"
+    // （之前用 ilike 让字段反向包含整句问题，字段本身很短，永远匹配不上）
+    const [speciesAll, compoundsAll, effectsAll, documentsAll, timelineAll] = await Promise.all([
       supabase
         .from('species')
         .select(`
           name_zh, name_latin, description,
           species_meta ( summary, trl, innov_score, market_score, track_id, tag )
-        `)
-        .or(`name_zh.ilike.%${q}%,name_latin.ilike.%${q}%,description.ilike.%${q}%`)
-        .limit(6),
-      supabase
-        .from('compounds')
-        .select('name, type, description')
-        .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
-        .limit(6),
-      supabase
-        .from('effects')
-        .select('name, description')
-        .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
-        .limit(6),
-      supabase
-        .from('documents')
-        .select('title, content, evidence_tier, confidence_grade')
-        .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
-        .limit(4),
+        `),
+      supabase.from('compounds').select('name, type, description'),
+      supabase.from('effects').select('name, description'),
+      supabase.from('documents').select('title, content, evidence_tier, confidence_grade'),
       supabase
         .from('evidence_timeline')
-        .select('project_name, stage_name, status, evidence_level, confidence_grade, description')
-        .or(`project_name.ilike.%${q}%,stage_name.ilike.%${q}%,description.ilike.%${q}%`)
-        .limit(6),
+        .select('project_name, stage_name, status, evidence_level, confidence_grade, description'),
     ])
 
+    const mentions = (text: string | null | undefined) =>
+      !!text && q.includes(text)
+
+    const speciesHits = (speciesAll.data ?? []).filter(
+      (s: any) => mentions(s.name_zh) || mentions(s.name_latin)
+    )
+    const compoundsHits = (compoundsAll.data ?? []).filter((c: any) => mentions(c.name))
+    const effectsHits = (effectsAll.data ?? []).filter((e: any) => mentions(e.name))
+    const documentsHits = (documentsAll.data ?? []).filter((d: any) => mentions(d.title))
+    const timelineHits = (timelineAll.data ?? []).filter(
+      (t: any) => mentions(t.project_name) || mentions(t.stage_name)
+    )
+
+    // 关键词一个都没命中时，退化为创新分/市场分排名靠前的物种做通用背景
     let fallbackSpecies: any[] = []
-    if (!speciesRes.data?.length) {
-      const { data } = await supabase
-        .from('species')
-        .select(`
-          name_zh, name_latin,
-          species_meta ( summary, trl, innov_score, market_score, track_id )
-        `)
-        .limit(10)
-      fallbackSpecies = data ?? []
+    if (!speciesHits.length) {
+      fallbackSpecies = (speciesAll.data ?? [])
+        .slice()
+        .sort((a: any, b: any) => {
+          const am = Array.isArray(a.species_meta) ? a.species_meta[0] : a.species_meta
+          const bm = Array.isArray(b.species_meta) ? b.species_meta[0] : b.species_meta
+          return (bm?.innov_score ?? 0) - (am?.innov_score ?? 0)
+        })
+        .slice(0, 10)
     }
 
     const contextParts: string[] = []
 
-    const speciesForContext = speciesRes.data?.length ? speciesRes.data : fallbackSpecies
-    if (speciesForContext?.length) {
+    const speciesForContext = speciesHits.length ? speciesHits : fallbackSpecies
+    if (speciesForContext.length) {
       contextParts.push(
         '相关物种：\n' +
           speciesForContext
@@ -75,32 +76,32 @@ export async function POST(request: Request) {
       )
     }
 
-    if (compoundsRes.data?.length) {
+    if (compoundsHits.length) {
       contextParts.push(
         '相关化合物：\n' +
-          compoundsRes.data.map((c: any) => `- ${c.name}（${c.type || '未分类'}）：${c.description || '暂无描述'}`).join('\n')
+          compoundsHits.map((c: any) => `- ${c.name}（${c.type || '未分类'}）：${c.description || '暂无描述'}`).join('\n')
       )
     }
 
-    if (effectsRes.data?.length) {
+    if (effectsHits.length) {
       contextParts.push(
-        '相关功效：\n' + effectsRes.data.map((e: any) => `- ${e.name}：${e.description || '暂无描述'}`).join('\n')
+        '相关功效：\n' + effectsHits.map((e: any) => `- ${e.name}：${e.description || '暂无描述'}`).join('\n')
       )
     }
 
-    if (documentsRes.data?.length) {
+    if (documentsHits.length) {
       contextParts.push(
         '相关文献/治理记录：\n' +
-          documentsRes.data
+          documentsHits
             .map((d: any) => `- 《${d.title}》[${d.evidence_tier || '未分级'}/${d.confidence_grade || '-'}级]：${(d.content || '').slice(0, 150)}...`)
             .join('\n')
       )
     }
 
-    if (timelineRes.data?.length) {
+    if (timelineHits.length) {
       contextParts.push(
         '相关证据时间轴：\n' +
-          timelineRes.data
+          timelineHits
             .map((t: any) => `- [${t.project_name}] ${t.stage_name}（${t.status}，${t.evidence_level || '未分级'}/${t.confidence_grade || '-'}级）：${t.description || ''}`)
             .join('\n')
       )
@@ -128,32 +129,4 @@ ${context}`
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: q },
-        ],
-        temperature: 0.4,
-        max_tokens: 500,
-      }),
-    })
-
-    if (!dsRes.ok) {
-      const errText = await dsRes.text()
-      return NextResponse.json({ error: `DeepSeek请求失败: ${errText}` }, { status: 502 })
-    }
-
-    const dsData = await dsRes.json()
-    const answer = dsData?.choices?.[0]?.message?.content?.trim() || '暂时无法生成回答，请稍后重试。'
-
-    return NextResponse.json({ answer })
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 }
-    )
-  }
-}
+        Authorization: `
