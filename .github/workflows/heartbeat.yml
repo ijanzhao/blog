@@ -30,3 +30,49 @@ jobs:
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
             && echo "ijanzhao-app OK" || echo "ijanzhao-app FAILED"
+name: Heartbeat
+
+on:
+  schedule:
+    - cron: '0 3 */2 * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping ijan.app
+        run: |
+          curl -sf \
+            -X PATCH "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
+            -H "apikey: <IJAN_APP_SUPABASE_ANON_KEY>" \
+            -H "Authorization: Bearer <IJAN_APP_SUPABASE_ANON_KEY>" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+            && echo "ijan.app OK" || echo "ijan.app FAILED"
+
+      - name: Ping ijanzhao-app
+        run: |
+          curl -sf \
+            -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
+            -H "apikey: <IJANZHAO_APP_SUPABASE_ANON_KEY>" \
+            -H "Authorization: Bearer <IJANZHAO_APP_SUPABASE_ANON_KEY>" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+            && echo "ijanzhao-app OK" || echo "ijanzhao-app FAILED"
+
+  keepalive:
+    runs-on: ubuntu-latest
+    needs: ping
+    permissions:
+      actions: write
+    steps:
+      - name: Reset 60-day inactivity counter
+        run: |
+          curl -X PUT \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/heartbeat.yml/enable" \
+            -H "Authorization: token ${GITHUB_TOKEN}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
