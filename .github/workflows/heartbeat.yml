@@ -13,8 +13,8 @@ jobs:
         run: |
           curl -sf \
             -X PATCH "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
-            -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u \
-            -H "Authorization:  sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u\
+            -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
+            -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
@@ -24,9 +24,9 @@ jobs:
         run: |
           curl -sf \
             -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
-            -H \
-            -H "Authorization: \
-            -H "Content-Type: applicationsb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u/json" \
+            -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
+            -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
+            -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
             && echo "ijanzhao-app OK" || echo "ijanzhao-app FAILED"
