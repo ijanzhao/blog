@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     // 数据量不大，拉全量数据后在代码里判断"问题是否提到了这个名字"
     // （之前用 ilike 让字段反向包含整句问题，字段本身很短，永远匹配不上）
-    const [speciesAll, compoundsAll, effectsAll, documentsAll, timelineAll] = await Promise.all([
+    const [speciesAll, compoundsAll, effectsAll, documentsAll, timelineAll, herbDoseAll] = await Promise.all([
       supabase
         .from('species')
         .select(`
@@ -33,10 +33,23 @@ export async function POST(request: Request) {
       supabase
         .from('evidence_timeline')
         .select('project_name, stage_name, status, evidence_level, confidence_grade, description'),
+      supabase
+        .from('herb_dose_reference')
+        .select('name_zh, name_aliases, dose_min, dose_max, dose_unit, safety_note, source, source_edition, verified'),
     ])
 
     const mentions = (text: string | null | undefined) =>
       !!text && q.includes(text)
+
+    const extractBencaozhiDose = (desc: string | null | undefined) => {
+      const m = desc?.match(/【用量】([^【]+)/)
+      return m ? m[1].trim() : null
+    }
+
+    const herbDoseHits = ((herbDoseAll as any)?.data ?? []).filter(
+      (h: any) =>
+        mentions(h.name_zh) || (h.name_aliases ?? []).some((a: string) => mentions(a))
+    )
 
     const speciesHits = (speciesAll.data ?? []).filter(
       (s: any) => mentions(s.name_zh) || mentions(s.name_latin)
@@ -107,6 +120,31 @@ export async function POST(request: Request) {
       )
     }
 
+    const bencaozhiDoseLines = speciesHits
+      .map((s: any) => {
+        const d = extractBencaozhiDose(s.description)
+        return d ? `- ${s.name_zh}：《太白山本草志》${d}` : null
+      })
+      .filter(Boolean)
+    if (bencaozhiDoseLines.length) {
+      contextParts.push('剂量参考·《太白山本草志》（库内物种记录）：\n' + bencaozhiDoseLines.join('\n'))
+    }
+
+    if (herbDoseHits.length) {
+      contextParts.push(
+        '剂量参考·药典（公开药典数据）：\n' +
+          herbDoseHits
+            .map((h: any) => {
+              const range =
+                h.dose_min != null && h.dose_max != null
+                  ? `${h.dose_min}~${h.dose_max}${h.dose_unit}`
+                  : '范围未录入'
+              return `- ${h.name_zh}：${h.source}${h.source_edition} ${range}${h.verified ? '' : '（待核实）'}${h.safety_note ? '；' + h.safety_note : ''}`
+            })
+            .join('\n')
+      )
+    }
+
     const context = contextParts.length
       ? contextParts.join('\n\n')
       : '数据库中未检索到与问题直接相关的记录，请基于常识谨慎作答，并提醒用户这不是数据库内的确定信息。'
@@ -115,7 +153,16 @@ export async function POST(request: Request) {
 请只依据下面提供的数据库上下文回答问题，保持专业、简洁、可执行。
 如果上下文没有覆盖问题，请明确说明"数据库中暂无相关记录"，不要编造具体数值或研究结论。
 如果上下文中的文献/证据时间轴提示存在争议、反证或尚未完成（如status为planned、evidence_level为THEORETICAL_HYPOTHESIS），必须明确指出，不能把未完成或有争议的内容当作确定结论呈现。
-回答用中文，控制在200字以内，可以用短句或要点列出。
+回答用中文。一般问题控制在200字以内，可以用短句或要点列出。
+如果用户提交的是方剂（药名加克数），不受200字限制，按下面格式逐味核对，纯文本输出，不使用星号、井号等Markdown符号：
+【剂量核对】（共N味）
+✓ 范围内：药名 方中量（来源 范围）
+⚠ 超出或低于范围：药名 方中量（来源 范围），写明是哪个来源
+○ 两处剂量参考均无记录，无法判断：药名
+【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。
+【配伍禁忌】数据库没有十八反、十九畏数据，写"未检查"，不得写"无禁忌"。
+【合规与安全提示】CITES、有毒、炮制要求（如后下）单独写在这里。
+规则：方中每一味都必须归入✓、⚠、○之一，不得漏味；任一剂量参考来源的范围被超出就标⚠并写明来源；两个来源并存时都列出；平台高风险属（乌头属、马兜铃属、侧金盏花属等）不做剂量判断，写"按平台政策不提供剂量信息，请由专业人员核查"；不判断疗效或君臣佐使，不提供诊疗建议。
 
 数据库上下文：
 ${context}`
@@ -138,7 +185,7 @@ ${context}`
           { role: 'user', content: q },
         ],
         temperature: 0.4,
-        max_tokens: 500,
+        max_tokens: 800,
       }),
     })
 
