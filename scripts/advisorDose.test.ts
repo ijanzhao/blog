@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { evaluateFormula } from '../lib/advisorDose'
+import { composeAnswer, evaluateFormula } from '../lib/advisorDose'
 import type { HerbDoseRow, SpeciesLike } from '../lib/advisorDose'
 
 const sp = (name_zh: string, description: string, name_latin = 'X y'): SpeciesLike => ({ name_zh, name_latin, description })
@@ -10,8 +10,9 @@ const species: SpeciesLike[] = [
   sp('升麻', '【用量】3~10克。'),
   sp('柴胡', '【用量】3~10克。'),
   sp('桔梗', '【用量】3~10克。'),
-  sp('白及', '【用量】内服煎汤6~15g，研末吞服3~6g。'),
+  sp('白及', '【用法用量】内服：煎汤，6~15g；研末吞服3~6g。外用：适量，研末调敷。【平台备注】x'),
   sp('铁棒锤', '【用量】1~3克。', 'Aconitum pendulum'),
+  sp('土白及', '【来源】《太白山本草志》p308。【用量】3~10克。'),
 ]
 const hr = (name_zh: string, min: number, max: number, aliases: string[] = []): HerbDoseRow => ({
   name_zh, name_aliases: aliases, dose_min: min, dose_max: max, source: '中国药典', source_edition: '2020版',
@@ -37,14 +38,23 @@ test('15味：✓10 ⚠5 ○0', () => {
   const warn = r.lines.filter((l) => l.flag === '⚠').map((l) => l.name).sort()
   assert.deepEqual(warn, ['白术', '白芥子', '百部', '防风', '黄芩'].sort())
 })
-test('白术双来源逐字', () => {
+test('白术双来源逐字（出处未注明 → 库内物种记录）', () => {
   const r = run(FORMULA)!
-  assert.ok(r.lines.some((l) => l.text === '⚠ 白术 15克（《太白山本草志》 5~15g，范围内；中国药典2020版 6~12g，超出上限）'))
+  assert.ok(r.lines.some((l) => l.text === '⚠ 白术 15克（库内物种记录 5~15g，范围内；中国药典2020版 6~12g，超出上限）'))
+})
+test('白及真实标签【用法用量】可解析为 6~15 → ✓', () => {
+  const l = run(FORMULA)!.lines.find((x) => x.name === '白及')!
+  assert.equal(l.flag, '✓')
+  assert.ok(l.text.includes('6~15g'))
+})
+test('描述含《太白山本草志》才标该来源', () => {
+  const l = run('土白及5克 白术8克 甘草5克')!.lines[0]
+  assert.ok(l.text.includes('《太白山本草志》'))
 })
 test('杏仁合并苦杏仁，两处均范围内', () => {
   const l = run(FORMULA)!.lines.find((x) => x.name === '杏仁')!
   assert.equal(l.flag, '✓')
-  assert.ok(l.text.includes('《太白山本草志》') && l.text.includes('中国药典2020版 5~10g'))
+  assert.ok(l.text.includes('库内物种记录') && l.text.includes('中国药典2020版 5~10g'))
 })
 test('连跑三次，剂量块逐字相同', () => {
   const a = run(FORMULA)!.block, b = run(FORMULA)!.block, c = run(FORMULA)!.block
@@ -82,6 +92,13 @@ test('钱、两不识别；少于3味不触发', () => {
 test('表格式输入「药物 剂量 生黄芪 15 g」', () => {
   const r = run('药物 剂量 生黄芪 15 g 白术 15 g 黄芩 15 g')!
   assert.equal(r.lines.length, 3)
+})
+
+test('固定段由服务端输出，且不含指令原文', () => {
+  const out = composeAnswer('【剂量核对】x', '【配伍禁忌】写"未检查"，不得写"无禁忌"。\n【合规与安全提示】白及：兰科。')
+  assert.ok(out.includes('【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'))
+  assert.ok(!out.includes('不得写'))
+  assert.ok(out.includes('白及：兰科。'))
 })
 
 if (failed) { console.error(`${failed} test(s) failed`); process.exit(1) }
