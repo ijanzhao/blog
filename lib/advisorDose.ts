@@ -117,7 +117,7 @@ export const evaluateFormula = (q: string, speciesHits: SpeciesLike[], herbRows:
 
 // 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
 const FIXED_SECTIONS =
-  '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。\n\n【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'
+  '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。药典剂量区间依据《中国药典》2020年版；2025年版相关条目尚未完成逐条核验，请以经核实的现行药典文本为准。\n\n【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'
 
 export const composeAnswer = (doseBlock: string | null, llmText: string) => {
   if (!doseBlock) return llmText
