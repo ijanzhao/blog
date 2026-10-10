@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { composeAnswer, evaluateFormula, type HerbDoseRow, type SpeciesLike } from '@/lib/advisorDose'
+import { composeAnswer, evaluateFormula, type HerbDoseRow, type SpeciesLike } from '../../../../lib/advisorDose'
 
 export const dynamic = 'force-dynamic'
 
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
           '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。',
           '【配伍禁忌】数据库没有十八反、十九畏数据，写"未检查"，不得写"无禁忌"。',
           '【合规与安全提示】CITES、有毒、炮制要求（如后下）只依据数据库上下文；不判断疗效或君臣佐使，不提供诊疗建议。',
-        ].join('\\n')
+        ].join('\n')
       : ''
 
     const systemPrompt = `你是"冷域本草 · 研发智库"平台的研发顾问，服务对象是天然产物研发人员。
