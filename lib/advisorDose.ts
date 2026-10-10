@@ -25,6 +25,12 @@ export const parseDoseRange = (desc?: string | null) => {
   const m = raw?.match(/(\d+(?:\.\d+)?)\s*[~～\-–—至到]\s*(\d+(?:\.\d+)?)/)
   return m ? { min: Number(m[1]), max: Number(m[2]) } : null
 }
+// 物种记录里的用量：兼容【用量】【用法用量】【用法与用量】，取第一个「数字~数字」
+export const parseDoseRange = (desc?: string | null) => {
+  const raw = desc?.match(/【(?:用法与用量|用法用量|用量)】([^【]+)/)?.[1]
+  const m = raw?.match(/(\d+(?:\.\d+)?)\s*[~～\-–—至到]\s*(\d+(?:\.\d+)?)/)
+  return m ? { min: Number(m[1]), max: Number(m[2]) } : null
+}
 export const parseBencaozhiRange = parseDoseRange
 
 // 来源标签按证据标注：描述里明确提到《太白山本草志》才标它
@@ -105,6 +111,10 @@ export const evaluateFormula = (q: string, speciesHits: SpeciesLike[], herbRows:
   const dup = duplicates.length ? `\n注：以下药名重复出现，仅按首次剂量核对：${duplicates.join('、')}` : ''
   return { lines, block: header + '\n' + lines.map((l) => l.text).join('\n') + dup }
 }
+
+// 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
+const FIXED_SECTIONS =
+  '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。\n\n【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'
 
 // 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
 const FIXED_SECTIONS =
