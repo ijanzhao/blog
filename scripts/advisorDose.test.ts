@@ -3,6 +3,7 @@ import { composeAnswer, evaluateFormula } from '../lib/advisorDose'
 import type { HerbDoseRow, SpeciesLike } from '../lib/advisorDose'
 
 const sp = (name_zh: string, description: string, name_latin = 'X y'): SpeciesLike => ({ name_zh, name_latin, description })
+// 夹具照真实库内文本：白及用【用法用量】，且描述里没有出处标签
 const species: SpeciesLike[] = [
   sp('白术', '【用量】5~15克。'),
   sp('黄芩', '【用量】3~10克。'),
@@ -61,16 +62,14 @@ test('连跑三次，剂量块逐字相同', () => {
   assert.equal(a, b); assert.equal(b, c)
 })
 test('南杏仁不得匹配杏仁', () => {
-  const l = run('南杏仁10克 白术15克 甘草10克')!.lines[0]
-  assert.equal(l.flag, '○')
+  assert.equal(run('南杏仁10克 白术15克 甘草10克')!.lines[0].flag, '○')
 })
 test('请核对生黄芪15克 → ✓', () => {
   const l = run('请核对生黄芪15克 白术15克 甘草10克')!.lines[0]
   assert.equal(l.name, '生黄芪'); assert.equal(l.flag, '✓')
 })
 test('别名 芥子 → 白芥子', () => {
-  const l = run('芥子5克 甘草10克 白术8克')!.lines[0]
-  assert.ok(l.text.startsWith('✓ 白芥子 5克'))
+  assert.ok(run('芥子5克 甘草10克 白术8克')!.lines[0].text.startsWith('✓ 白芥子 5克'))
 })
 test('重复药名只输出一行', () => {
   const r = run('甘草10克 甘草5克 白术15克 黄芩10克')!
@@ -90,10 +89,8 @@ test('钱、两不识别；少于3味不触发', () => {
   assert.equal(run('白术15克'), null)
 })
 test('表格式输入「药物 剂量 生黄芪 15 g」', () => {
-  const r = run('药物 剂量 生黄芪 15 g 白术 15 g 黄芩 15 g')!
-  assert.equal(r.lines.length, 3)
+  assert.equal(run('药物 剂量 生黄芪 15 g 白术 15 g 黄芩 15 g')!.lines.length, 3)
 })
-
 test('固定段由服务端输出，且不含指令原文', () => {
   const out = composeAnswer('【剂量核对】x', '【配伍禁忌】写"未检查"，不得写"无禁忌"。\n【合规与安全提示】白及：兰科。')
   assert.ok(out.includes('【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'))
