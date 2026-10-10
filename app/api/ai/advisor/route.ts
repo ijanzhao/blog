@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       !!text && q.includes(text)
 
     const extractBencaozhiDose = (desc: string | null | undefined) => {
-      const m = desc?.match(/【用量】([^【]+)/)
+      const m = desc?.match(/【(?:用法与用量|用法用量|用量)】([^【]+)/)
       return m ? m[1].trim() : null
     }
 
@@ -124,11 +124,11 @@ export async function POST(request: Request) {
     const bencaozhiDoseLines = speciesHits
       .map((s: any) => {
         const d = extractBencaozhiDose(s.description)
-        return d ? `- ${s.name_zh}：《太白山本草志》${d}` : null
+        return d ? `- ${s.name_zh}：${s.description?.includes('《太白山本草志》') ? '《太白山本草志》' : '库内物种记录'} ${d}` : null
       })
       .filter(Boolean)
     if (bencaozhiDoseLines.length) {
-      contextParts.push('剂量参考·《太白山本草志》（库内物种记录）：\n' + bencaozhiDoseLines.join('\n'))
+      contextParts.push('剂量参考·库内物种记录（按描述中明确标注的出处区分）：\n' + bencaozhiDoseLines.join('\n'))
     }
 
     if (herbDoseHits.length) {
@@ -157,11 +157,9 @@ export async function POST(request: Request) {
     )
     const formulaRules = doseResult
       ? [
-          '本次是方剂核对。程序已生成【剂量核对】区块，禁止重复、改写或质疑其中的剂量分类。',
-          '只输出以下三段，纯文本，不使用星号、井号等Markdown符号：',
-          '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。',
-          '【配伍禁忌】数据库没有十八反、十九畏数据，写"未检查"，不得写"无禁忌"。',
-          '【合规与安全提示】CITES、有毒、炮制要求（如后下）只依据数据库上下文；不判断疗效或君臣佐使，不提供诊疗建议。',
+          '本次是方剂核对。剂量核对、说明、配伍禁忌均已由程序输出，你不得输出这些内容。',
+          '你只写一段，以【合规与安全提示】开头，纯文本，不使用星号、井号等Markdown符号：',
+          '写CITES、有毒、炮制要求（如后下）等，只依据数据库上下文；没有就写「数据库中暂无相关记录」。不判断疗效或君臣佐使，不提供诊疗建议。',
         ].join('\n')
       : ''
 
