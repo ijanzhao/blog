@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { composeAnswer, evaluateFormula, type HerbDoseRow, type SpeciesLike } from '@/lib/advisorDose'
 
 export const dynamic = 'force-dynamic'
 
@@ -149,20 +150,27 @@ export async function POST(request: Request) {
       ? contextParts.join('\n\n')
       : '数据库中未检索到与问题直接相关的记录，请基于常识谨慎作答，并提醒用户这不是数据库内的确定信息。'
 
+    const doseResult = evaluateFormula(
+      q,
+      speciesHits as SpeciesLike[],
+      ((herbDoseAll.data ?? []) as HerbDoseRow[])
+    )
+    const formulaRules = doseResult
+      ? [
+          '本次是方剂核对。程序已生成【剂量核对】区块，禁止重复、改写或质疑其中的剂量分类。',
+          '只输出以下三段，纯文本，不使用星号、井号等Markdown符号：',
+          '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。',
+          '【配伍禁忌】数据库没有十八反、十九畏数据，写"未检查"，不得写"无禁忌"。',
+          '【合规与安全提示】CITES、有毒、炮制要求（如后下）只依据数据库上下文；不判断疗效或君臣佐使，不提供诊疗建议。',
+        ].join('\\n')
+      : ''
+
     const systemPrompt = `你是"冷域本草 · 研发智库"平台的研发顾问，服务对象是天然产物研发人员。
 请只依据下面提供的数据库上下文回答问题，保持专业、简洁、可执行。
 如果上下文没有覆盖问题，请明确说明"数据库中暂无相关记录"，不要编造具体数值或研究结论。
 如果上下文中的文献/证据时间轴提示存在争议、反证或尚未完成（如status为planned、evidence_level为THEORETICAL_HYPOTHESIS），必须明确指出，不能把未完成或有争议的内容当作确定结论呈现。
 回答用中文。一般问题控制在200字以内，可以用短句或要点列出。
-如果用户提交的是方剂（药名加克数），不受200字限制，按下面格式逐味核对，纯文本输出，不使用星号、井号等Markdown符号：
-【剂量核对】（共N味）
-✓ 范围内：药名 方中量（来源 范围）
-⚠ 超出或低于范围：药名 方中量（来源 范围），写明是哪个来源
-○ 两处剂量参考均无记录，无法判断：药名
-【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。
-【配伍禁忌】数据库没有十八反、十九畏数据，写"未检查"，不得写"无禁忌"。
-【合规与安全提示】CITES、有毒、炮制要求（如后下）单独写在这里。
-规则：方中每一味都必须归入✓、⚠、○之一，不得漏味；任一剂量参考来源的范围被超出就标⚠并写明来源；两个来源并存时都列出；平台高风险属（乌头属、马兜铃属、侧金盏花属等）不做剂量判断，写"按平台政策不提供剂量信息，请由专业人员核查"；不判断疗效或君臣佐使，不提供诊疗建议。
+${formulaRules}
 
 数据库上下文：
 ${context}`
@@ -184,7 +192,7 @@ ${context}`
           { role: 'system', content: systemPrompt },
           { role: 'user', content: q },
         ],
-        temperature: 0.4,
+        temperature: 0.1,
         max_tokens: 800,
       }),
     })
@@ -195,7 +203,8 @@ ${context}`
     }
 
     const dsData = await dsRes.json()
-    const answer = dsData?.choices?.[0]?.message?.content?.trim() || '暂时无法生成回答，请稍后重试。'
+    const llmText = dsData?.choices?.[0]?.message?.content?.trim() || '暂时无法生成回答，请稍后重试。'
+    const answer = composeAnswer(doseResult?.block ?? null, llmText)
 
     return NextResponse.json({ answer })
   } catch (err) {
