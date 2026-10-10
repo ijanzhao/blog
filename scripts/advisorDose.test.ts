@@ -101,12 +101,5 @@ test('固定段由服务端输出，且不含指令原文', () => {
   assert.ok(out.includes('白及：兰科。'))
 })
 
-test('固定段由服务端输出，且不含指令原文', () => {
-  const out = composeAnswer('【剂量核对】x', '【配伍禁忌】写"未检查"，不得写"无禁忌"。\n【合规与安全提示】白及：兰科。')
-  assert.ok(out.includes('【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'))
-  assert.ok(!out.includes('不得写'))
-  assert.ok(out.includes('白及：兰科。'))
-})
-
 if (failed) { console.error(`${failed} test(s) failed`); process.exit(1) }
 console.log('ALL PASS')
