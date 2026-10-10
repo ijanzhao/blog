@@ -19,11 +19,17 @@ export type DoseLine = { name: string; grams: number; flag: '✓' | '⚠' | '○
 const RESTRICTED = /^(Aconitum|Aristolochia|Adonis)\b/i
 const NOISE_PREFIX = /^(?:请|帮我|帮忙|核对|检查|看看|方剂|处方|方子|药物|剂量|用量|方中|如下|以下)+/
 
-export const parseBencaozhiRange = (desc?: string | null) => {
-  const raw = desc?.match(/【用量】([^【]+)/)?.[1]
+// 物种记录里的用量：兼容【用量】【用法用量】【用法与用量】，取第一个「数字~数字」
+export const parseDoseRange = (desc?: string | null) => {
+  const raw = desc?.match(/【(?:用法与用量|用法用量|用量)】([^【]+)/)?.[1]
   const m = raw?.match(/(\d+(?:\.\d+)?)\s*[~～\-–—至到]\s*(\d+(?:\.\d+)?)/)
   return m ? { min: Number(m[1]), max: Number(m[2]) } : null
 }
+export const parseBencaozhiRange = parseDoseRange
+
+// 来源标签按证据标注：描述里明确提到《太白山本草志》才标它
+export const speciesSourceLabel = (desc?: string | null) =>
+  desc?.includes('《太白山本草志》') ? '《太白山本草志》' : '库内物种记录'
 
 const buildEntries = (speciesHits: SpeciesLike[], herbRows: HerbDoseRow[]) => {
   const entries: DoseEntry[] = []
@@ -40,8 +46,8 @@ const buildEntries = (speciesHits: SpeciesLike[], herbRows: HerbDoseRow[]) => {
     }
   }
   for (const s of speciesHits) {
-    const r = parseBencaozhiRange(s.description)
-    upsert([s.name_zh], s.name_zh, r ? { label: '《太白山本草志》', ...r } : null, RESTRICTED.test(s.name_latin ?? ''))
+    const r = parseDoseRange(s.description)
+    upsert([s.name_zh], s.name_zh, r ? { label: speciesSourceLabel(s.description), ...r } : null, RESTRICTED.test(s.name_latin ?? ''))
   }
   for (const h of herbRows) {
     const min = h.dose_min == null ? NaN : Number(h.dose_min)
@@ -100,8 +106,14 @@ export const evaluateFormula = (q: string, speciesHits: SpeciesLike[], herbRows:
   return { lines, block: header + '\n' + lines.map((l) => l.text).join('\n') + dup }
 }
 
+// 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
+const FIXED_SECTIONS =
+  '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。\n\n【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'
+
 export const composeAnswer = (doseBlock: string | null, llmText: string) => {
   if (!doseBlock) return llmText
-  const rest = llmText.replace(/【剂量核对】[\s\S]*?(?=【|$)/, '').trim()
-  return rest ? `${doseBlock}\n\n${rest}` : doseBlock
+  const compliance =
+    llmText.match(/【合规与安全提示】[\s\S]*$/)?.[0]?.trim() ??
+    '【合规与安全提示】数据库中暂无相关记录。'
+  return `${doseBlock}\n\n${FIXED_SECTIONS}\n\n${compliance}`
 }
