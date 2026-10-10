@@ -64,7 +64,7 @@ const buildEntries = (speciesHits: SpeciesLike[], herbRows: HerbDoseRow[]) => {
     upsert(
       [h.name_zh, ...(h.name_aliases ?? [])],
       h.name_zh,
-      ok ? { label: \`\${h.source}\${h.source_edition}\`, min, max } : null,
+      ok ? { label: `${h.source}${h.source_edition}`, min, max } : null,
       false
     )
   }
@@ -100,18 +100,18 @@ export const evaluateFormula = (q: string, speciesHits: SpeciesLike[], herbRows:
       const checks = e.sources.map((s) => ({ s, over: grams > s.max, under: grams < s.min }))
       flag = checks.some((c) => c.over || c.under) ? '⚠' : '✓'
       detail = checks
-        .map((c) => \`\${c.s.label} \${c.s.min}~\${c.s.max}g，\${c.over ? '超出上限' : c.under ? '低于下限' : '范围内'}\`)
+        .map((c) => `${c.s.label} ${c.s.min}~${c.s.max}g，${c.over ? '超出上限' : c.under ? '低于下限' : '范围内'}`)
         .join('；')
     } else if (e) {
       detail = '两处剂量参考均无记录，无法判断'
     }
-    lines.push({ name, grams, flag, text: \`\${flag} \${name} \${grams}克（\${detail}）\` })
+    lines.push({ name, grams, flag, text: `${flag} ${name} ${grams}克（${detail}）` })
   }
   if (lines.length === 0) return null
 
   const count = (f: DoseLine['flag']) => lines.filter((l) => l.flag === f).length
-  const header = \`【剂量核对】（共\${lines.length}味：✓\${count('✓')} ⚠\${count('⚠')} ○\${count('○')}）\`
-  const dup = duplicates.length ? \`\n注：以下药名重复出现，仅按首次剂量核对：\${duplicates.join('、')}\` : ''
+  const header = `【剂量核对】（共${lines.length}味：✓${count('✓')} ⚠${count('⚠')} ○${count('○')}）`
+  const dup = duplicates.length ? `\n注：以下药名重复出现，仅按首次剂量核对：${duplicates.join('、')}` : ''
   return { lines, block: header + '\n' + lines.map((l) => l.text).join('\n') + dup }
 }
 
@@ -124,5 +124,5 @@ export const composeAnswer = (doseBlock: string | null, llmText: string) => {
   const compliance =
     llmText.match(/【合规与安全提示】[\s\S]*$/)?.[0]?.trim() ??
     '【合规与安全提示】数据库中暂无相关记录。'
-  return \`\${doseBlock}\n\n\${FIXED_SECTIONS}\n\n\${compliance}\`
+  return `${doseBlock}\n\n${FIXED_SECTIONS}\n\n${compliance}`
 }
