@@ -1,37 +1,4 @@
-export type DoseSource = { label: string; min: number; max: number }
-type DoseEntry = { name: string; names: string[]; sources: DoseSource[]; restricted: boolean }
-
-export type SpeciesLike = {
-  name_zh: string
-  name_latin?: string | null
-  description?: string | null
-}
-export type HerbDoseRow = {
-  name_zh: string
-  name_aliases?: string[] | null
-  dose_min: number | string | null
-  dose_max: number | string | null
-  source: string
-  source_edition: string
-}
-export type DoseLine = { name: string; grams: number; flag: '✓' | '⚠' | '○'; text: string }
-
-const RESTRICTED = /^(Aconitum|Aristolochia|Adonis)\b/i
-const NOISE_PREFIX = /^(?:请|帮我|帮忙|核对|检查|看看|方剂|处方|方子|药物|剂量|用量|方中|如下|以下)+/
-
-// 物种记录里的用量：兼容【用量】【用法用量】【用法与用量】，取第一个「数字~数字」
-export const parseDoseRange = (desc?: string | null) => {
-  const raw = desc?.match(/【(?:用法与用量|用法用量|用量)】([^【]+)/)?.[1]
-  const m = raw?.match(/(\d+(?:\.\d+)?)\s*[~～\-–—至到]\s*(\d+(?:\.\d+)?)/)
-  return m ? { min: Number(m[1]), max: Number(m[2]) } : null
-}
-// 物种记录里的用量：兼容【用量】【用法用量】【用法与用量】，取第一个「数字~数字」
-export const parseDoseRange = (desc?: string | null) => {
-  const raw = desc?.match(/【(?:用法与用量|用法用量|用量)】([^【]+)/)?.[1]
-  const m = raw?.match(/(\d+(?:\.\d+)?)\s*[~～\-–—至到]\s*(\d+(?:\.\d+)?)/)
-  return m ? { min: Number(m[1]), max: Number(m[2]) } : null
-}
-export const parseBencaozhiRange = parseDoseRange
+export type DoseSource = { label: string; miexport const parseBencaozhiRange = parseDoseRange
 
 // 来源标签按证据标注：描述里明确提到《太白山本草志》才标它
 export const speciesSourceLabel = (desc?: string | null) =>
@@ -111,10 +78,6 @@ export const evaluateFormula = (q: string, speciesHits: SpeciesLike[], herbRows:
   const dup = duplicates.length ? `\n注：以下药名重复出现，仅按首次剂量核对：${duplicates.join('、')}` : ''
   return { lines, block: header + '\n' + lines.map((l) => l.text).join('\n') + dup }
 }
-
-// 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
-const FIXED_SECTIONS =
-  '【说明】未收录不等于剂量合理，○类药物请对照药典自行核查。\n\n【配伍禁忌】数据库没有十八反、十九畏数据，未检查。'
 
 // 固定段落由服务端输出；模型只保留【合规与安全提示】，其余内容一律丢弃
 const FIXED_SECTIONS =
