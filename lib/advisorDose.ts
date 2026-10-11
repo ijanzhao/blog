@@ -29,7 +29,7 @@ export const parseBencaozhiRange = parseDoseRange
 
 // 来源标签按证据标注：描述里明确提到《太白山本草志》才标它
 export const speciesSourceLabel = (desc?: string | null) =>
-  desc?.includes('《太白山本草志》') ? '《太白山本草志》' : '库内物种记录'
+  /【(?:出处|来源)】[^【]*太白山本草志/.test(desc ?? '') ? '《太白山本草志》' : '库内物种记录'
 
 const buildEntries = (speciesHits: SpeciesLike[], herbRows: HerbDoseRow[]) => {
   const entries: DoseEntry[] = []
