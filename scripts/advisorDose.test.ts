@@ -3,14 +3,14 @@ import { composeAnswer, evaluateFormula } from '../lib/advisorDose'
 import type { HerbDoseRow, SpeciesLike } from '../lib/advisorDose'
 
 const sp = (name_zh: string, description: string, name_latin = 'X y'): SpeciesLike => ({ name_zh, name_latin, description })
-// 夹具照真实库内文本：白及用【用法用量】，且描述里没有出处标签
+// 夹具照真实库内文本：六味常用药带【出处】太白山本草志·附录一；白及用【用法用量】，且没有出处标签
 const species: SpeciesLike[] = [
-  sp('白术', '【用量】5~15克。'),
-  sp('黄芩', '【用量】3~10克。'),
-  sp('杏仁', '【用量】3~10克，宜后下。'),
-  sp('升麻', '【用量】3~10克。'),
-  sp('柴胡', '【用量】3~10克。'),
-  sp('桔梗', '【用量】3~10克。'),
+  sp('白术', '【用量】5~15克。【出处】太白山本草志·附录一 p540'),
+  sp('黄芩', '【用量】3~10克。【出处】太白山本草志·附录一 p539'),
+  sp('杏仁', '【用量】3~10克，宜后下。【出处】太白山本草志·附录一 p547'),
+  sp('升麻', '【用量】3~10克。【出处】太白山本草志·附录一 p536'),
+  sp('柴胡', '【用量】3~10克。【出处】太白山本草志·附录一 p538'),
+  sp('桔梗', '【用量】3~10克。【出处】太白山本草志·附录一 p540'),
   sp('白及', '【用法用量】内服：煎汤，6~15g；研末吞服3~6g。外用：适量，研末调敷。【平台备注】x'),
   sp('铁棒锤', '【用量】1~3克。', 'Aconitum pendulum'),
   sp('土白及', '【来源】《太白山本草志》p308。【用量】3~10克。'),
@@ -39,23 +39,27 @@ test('15味：✓10 ⚠5 ○0', () => {
   const warn = r.lines.filter((l) => l.flag === '⚠').map((l) => l.name).sort()
   assert.deepEqual(warn, ['白术', '白芥子', '百部', '防风', '黄芩'].sort())
 })
-test('白术双来源逐字（出处未注明 → 库内物种记录）', () => {
+test('白术双来源逐字（出处写明太白山本草志）', () => {
   const r = run(FORMULA)!
-  assert.ok(r.lines.some((l) => l.text === '⚠ 白术 15克（库内物种记录 5~15g，范围内；中国药典2020版 6~12g，超出上限）'))
+  assert.ok(r.lines.some((l) => l.text === '⚠ 白术 15克（《太白山本草志》 5~15g，范围内；中国药典2020版 6~12g，超出上限）'))
 })
 test('白及真实标签【用法用量】可解析为 6~15 → ✓', () => {
   const l = run(FORMULA)!.lines.find((x) => x.name === '白及')!
   assert.equal(l.flag, '✓')
   assert.ok(l.text.includes('6~15g'))
 })
-test('描述含《太白山本草志》才标该来源', () => {
+test('白及无出处标签 → 库内物种记录', () => {
+  const l = run(FORMULA)!.lines.find((x) => x.name === '白及')!
+  assert.ok(l.text.includes('库内物种记录 6~15g'))
+})
+test('出处/来源写明太白山本草志才标该来源', () => {
   const l = run('土白及5克 白术8克 甘草5克')!.lines[0]
   assert.ok(l.text.includes('《太白山本草志》'))
 })
 test('杏仁合并苦杏仁，两处均范围内', () => {
   const l = run(FORMULA)!.lines.find((x) => x.name === '杏仁')!
   assert.equal(l.flag, '✓')
-  assert.ok(l.text.includes('库内物种记录') && l.text.includes('中国药典2020版 5~10g'))
+  assert.ok(l.text.includes('《太白山本草志》') && l.text.includes('中国药典2020版 5~10g'))
 })
 test('连跑三次，剂量块逐字相同', () => {
   const a = run(FORMULA)!.block, b = run(FORMULA)!.block, c = run(FORMULA)!.block
