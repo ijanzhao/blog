@@ -14,20 +14,28 @@ jobs:
           curl --silent --show-error --fail-with-body \
             --write-out "\nHTTP %{http_code}\n" \
             -X PATCH "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
-            -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
-            -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
+            -H "apikey: ${{ secrets.SUPABASE_PROD_PUBLISHABLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_PROD_PUBLISHABLE_KEY }}" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
           echo "ijan.app OK"
+        env:
+          SUPABASE_PROD_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PROD_PUBLISHABLE_KEY }}
 
       - name: Ping ijanzhao-app
+        env:
+          SUPABASE_SANDBOX_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_SANDBOX_PUBLISHABLE_KEY }}
         run: |
+          if [ -z "$SUPABASE_SANDBOX_PUBLISHABLE_KEY" ]; then
+            echo "::error::Missing repository secret SUPABASE_SANDBOX_PUBLISHABLE_KEY"
+            exit 1
+          fi
           curl --silent --show-error --fail-with-body \
             --write-out "\nHTTP %{http_code}\n" \
             -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
-            -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
-            -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
+            -H "apikey: $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
