@@ -11,35 +11,39 @@ jobs:
     steps:
       - name: Ping ijan.app
         run: |
-          curl -sf \
+          curl --silent --show-error --fail-with-body \
+            --write-out "\nHTTP %{http_code}\n" \
             -X PATCH "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
             -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
             -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
-            && echo "ijan.app OK" || echo "ijan.app FAILED"
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+          echo "ijan.app OK"
 
       - name: Ping ijanzhao-app
         run: |
-          curl -sf \
+          curl --silent --show-error --fail-with-body \
+            --write-out "\nHTTP %{http_code}\n" \
             -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
             -H "apikey: sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
             -H "Authorization: Bearer sb_publishable_K_DnINBvp73Wf4XrvbTbtw_49N2e20u" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
-            && echo "ijanzhao-app OK" || echo "ijanzhao-app FAILED"
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+          echo "ijanzhao-app OK"
 
   keepalive:
     runs-on: ubuntu-latest
     needs: ping
+    if: always()
     permissions:
       actions: write
     steps:
       - name: Reset 60-day inactivity counter
         run: |
-          curl -X PUT \
+          curl --silent --show-error --fail-with-body \
+            -X PUT \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/heartbeat.yml/enable" \
             -H "Authorization: token ${GITHUB_TOKEN}"
         env:
