@@ -11,10 +11,10 @@ jobs:
     steps:
       - name: Ping ijan.app
         env:
-          SUPABASE_PROD_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PROD_PUBLISHABLE_KEY }}
+          SUPABASE_PROD_PUBLISHABLE_KEY: ${{ secrets.IJAN_APP_ANON_KEY }}
         run: |
           if [ -z "$SUPABASE_PROD_PUBLISHABLE_KEY" ]; then
-            echo "::error::Missing repository secret SUPABASE_PROD_PUBLISHABLE_KEY"
+            echo "::error::Missing repository secret IJAN_APP_ANON_KEY"
             exit 1
           fi
           curl --silent --show-error --fail-with-body \
@@ -26,6 +26,24 @@ jobs:
             -H "Prefer: return=minimal" \
             -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
           echo "ijan.app OK"
+
+      - name: Ping ijanzhao-app
+        env:
+          SUPABASE_SANDBOX_PUBLISHABLE_KEY: ${{ secrets.IJANZHAO_APP_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SANDBOX_PUBLISHABLE_KEY" ]; then
+            echo "::error::Missing repository secret IJANZHAO_APP_ANON_KEY"
+            exit 1
+          fi
+          curl --silent --show-error --fail-with-body \
+            --write-out "\nHTTP %{http_code}\n" \
+            -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
+            -H "apikey: $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+          echo "ijanzhao-app OK"
 
   keepalive:
     runs-on: ubuntu-latest
