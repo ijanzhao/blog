@@ -17,14 +17,24 @@ jobs:
             echo "::error::Missing repository secret IJAN_APP_ANON_KEY"
             exit 1
           fi
-          curl --silent --show-error --fail-with-body \
-            --write-out "\nHTTP %{http_code}\n" \
+          response_file="$(mktemp)"
+          http_code=$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out "%{http_code}" \
+            --connect-timeout 10 --max-time 20 \
             -X PATCH "https://gotdehypsbkbyrasdbrr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
             -H "apikey: $SUPABASE_PROD_PUBLISHABLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_PROD_PUBLISHABLE_KEY" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+          curl_exit=$?
+          echo "Production heartbeat HTTP: ${http_code:-unknown}"
+          if [ -s "$response_file" ]; then cat "$response_file"; echo; fi
+          rm -f "$response_file"
+          if [ "$curl_exit" -ne 0 ] || [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "::error::ijan.app heartbeat failed"
+            exit 1
+          fi
           echo "ijan.app OK"
 
       - name: Ping ijanzhao-app
@@ -35,14 +45,24 @@ jobs:
             echo "::warning::Skipping sandbox heartbeat: repository secret IJANZHAO_APP_ANON_KEY is not configured"
             exit 0
           fi
-          curl --silent --show-error --fail-with-body \
-            --write-out "\nHTTP %{http_code}\n" \
+          response_file="$(mktemp)"
+          http_code=$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out "%{http_code}" \
+            --connect-timeout 10 --max-time 20 \
             -X PATCH "https://jgcibolwmwotsymhgtjr.supabase.co/rest/v1/_keep_alive_heartbeat?id=eq.1" \
             -H "apikey: $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SANDBOX_PUBLISHABLE_KEY" \
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
-            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+            -d "{\"last_ping\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+          curl_exit=$?
+          echo "Sandbox heartbeat HTTP: ${http_code:-unknown}"
+          if [ -s "$response_file" ]; then cat "$response_file"; echo; fi
+          rm -f "$response_file"
+          if [ "$curl_exit" -ne 0 ] || [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "::error::ijanzhao-app sandbox heartbeat failed"
+            exit 1
+          fi
           echo "ijanzhao-app sandbox OK"
 
   keepalive:
