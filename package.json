@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:md": "tsc --target ES2020 --module commonjs --strict --esModuleInterop --outDir .tmp-md-test lib/mdScoring.ts scripts/mdScoring.test.ts && node .tmp-md-test/scripts/mdScoring.test.js"
   },
   "dependencies": {
     "next": "14.2.0",
