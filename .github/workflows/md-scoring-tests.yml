@@ -1,6 +1,9 @@
 name: MD Scoring Tests (preliminary)
 
 on:
+  push:
+    branches:
+      - research/md-scoring-engine
   workflow_dispatch:
 
 permissions:
