@@ -85,8 +85,10 @@ export function scoreMatchedControlModule(
   }
 
   const signatureSet = new Set(signatureGenes);
-  const signatureGenesUsed = [...signatureSet].filter((gene) => gene in expression).sort();
-  const missingSignatureGenes = [...signatureSet].filter((gene) => !(gene in expression)).sort();
+  // Array.from avoids Set spread syntax that can fail under lower TS targets.
+  const uniqueSignatureGenes = Array.from(signatureSet);
+  const signatureGenesUsed = uniqueSignatureGenes.filter((gene) => gene in expression).sort();
+  const missingSignatureGenes = uniqueSignatureGenes.filter((gene) => !(gene in expression)).sort();
   if (signatureGenesUsed.length === 0) throw new Error('none of the signature genes are present in expression matrix');
 
   const ranked = allGenes
@@ -114,18 +116,19 @@ export function scoreMatchedControlModule(
     throw new Error('no matched control genes available; increase matrix size or adjust bins');
   }
 
+  const controlGenes = Array.from(controls);
   const signatureMeans = Array.from({ length: sampleCount }, (_, sample) =>
     mean(signatureGenesUsed.map((gene) => expression[gene][sample])),
   );
   const controlMeans = Array.from({ length: sampleCount }, (_, sample) =>
-    mean([...controls].map((gene) => expression[gene][sample])),
+    mean(controlGenes.map((gene) => expression[gene][sample])),
   );
 
   return {
     method: 'matched_control_module_score_v0.1',
     sampleScores: signatureMeans.map((value, index) => value - controlMeans[index]),
     signatureGenesUsed,
-    controlGenesUsed: [...controls].sort(),
+    controlGenesUsed: controlGenes.sort(),
     missingSignatureGenes,
     parameters,
   };
